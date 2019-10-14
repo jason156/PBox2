@@ -1,3 +1,5 @@
 Win64
 bin
 Win32
+/PBox.identcache
+/PBox.dproj.local
