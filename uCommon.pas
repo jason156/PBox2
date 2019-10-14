@@ -2,7 +2,7 @@ unit uCommon;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.IniFiles;
+uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.IniFiles, IdIPWatch;
 
 { 只允许运行一个实例 }
 procedure OnlyOneRunInstance;
@@ -12,6 +12,11 @@ function EnableDebugPrivilege(PrivName: string; CanDebug: Boolean): Boolean;
 
 { 升级数据库---执行脚本 }
 function UpdateDataBaseScript: Boolean;
+
+function GetNativeIP: String;
+
+type
+  TUIStyle = (uisMenu, uisButton, uisList);
 
 const
   c_strTitle                                  = '程序员工具箱 v4.0';
@@ -76,6 +81,19 @@ end;
 function UpdateDataBaseScript: Boolean;
 begin
   Result := True;
+end;
+
+function GetNativeIP: String;
+var
+  IdIPWatch: TIdIPWatch;
+begin
+  IdIPWatch := TIdIPWatch.Create(nil);
+  try
+    Result := IdIPWatch.LocalIP;
+  finally
+    IdIPWatch.Free;
+  end;
+
 end;
 
 end.

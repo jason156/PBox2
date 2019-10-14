@@ -25,12 +25,21 @@ type
     rzpgcntrlAll: TRzPageControl;
     rztbshtCenter: TRzTabSheet;
     rztbshtConfig: TRzTabSheet;
+    pnlIP: TPanel;
+    lblIP: TLabel;
+    bvlIP: TBevel;
+    bvlModule: TBevel;
+    pnlDownUp: TPanel;
+    lblDownUp: TLabel;
+    bvlDownUP: TBevel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tmrDateTimeTimer(Sender: TObject);
   private
     FlstAllDll           : TStringList;
     FstrActiveDllFileName: String;
+    FUIShowStyle         : TUIStyle;
+    FUIViewStyle         : Integer;
     procedure ShowPageTabView(const bShow: Boolean = False);
     { 扫描插件目录 }
     procedure ScanPlugins;
@@ -227,12 +236,14 @@ begin
       end;
     end;
 
-    { 扫描 EXE 文件，不限于插件目录(plugins) }
+    { 扫描 EXE 文件，读取配置文件 }
 
   finally
-    { 菜单栏 }
-    tlbMenu.Menu     := mmMain;
-    mmMain.AutoMerge := True;
+    if FUIShowStyle = uisMenu then
+    begin
+      tlbMenu.Menu     := mmMain;
+      mmMain.AutoMerge := True;
+    end;
   end;
 end;
 
@@ -258,12 +269,22 @@ end;
 
 procedure TfrmPBox.FormCreate(Sender: TObject);
 begin
+  { 初始化界面 }
   ShowPageTabView(False);
   rzpgcntrlAll.ActivePage := rztbshtCenter;
 
+  { 显示 时间 }
+  tmrDateTime.OnTimer(nil);
+
+  { 显示 IP }
+  lblIP.Caption := GetNativeIP;
+  lblIP.Left    := (lblIP.Parent.Width - lblIP.Width) div 2;
+
+  { 初始化参数 }
+  FUIShowStyle          := uisMenu;
+  FUIViewStyle          := 0;
   FlstAllDll            := TStringList.Create;
   FstrActiveDllFileName := '';
-  tmrDateTime.OnTimer(nil);
 
   { 扫描插件目录 }
   ScanPlugins;

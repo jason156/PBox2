@@ -32,11 +32,11 @@ object frmPBox: TfrmPBox
     ShowCaption = False
     TabOrder = 0
     object pnlInfo: TPanel
-      Left = 0
+      Left = 431
       Top = 0
       Width = 213
       Height = 25
-      Align = alLeft
+      Align = alRight
       BevelOuter = bvNone
       Caption = 'pnlInfo'
       Font.Charset = DEFAULT_CHARSET
@@ -47,7 +47,8 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 0
-      ExplicitHeight = 27
+      ExplicitLeft = 43
+      ExplicitTop = 1
       object lblInfo: TLabel
         Left = 4
         Top = 4
@@ -59,6 +60,14 @@ object frmPBox: TfrmPBox
         Font.Name = #23435#20307
         Font.Style = []
         ParentFont = False
+      end
+      object bvlModule: TBevel
+        Left = 211
+        Top = 0
+        Width = 2
+        Height = 25
+        Align = alRight
+        ExplicitLeft = 163
       end
     end
     object pnlTime: TPanel
@@ -78,7 +87,7 @@ object frmPBox: TfrmPBox
       ShowCaption = False
       TabOrder = 1
       object lblTime: TLabel
-        Left = 13
+        Left = 8
         Top = 4
         Width = 8
         Height = 16
@@ -88,6 +97,82 @@ object frmPBox: TfrmPBox
         Font.Name = #23435#20307
         Font.Style = []
         ParentFont = False
+      end
+    end
+    object pnlIP: TPanel
+      Left = 644
+      Top = 0
+      Width = 128
+      Height = 25
+      Align = alRight
+      BevelOuter = bvNone
+      Caption = 'pnlInfo'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      ShowCaption = False
+      TabOrder = 2
+      object lblIP: TLabel
+        Left = 4
+        Top = 4
+        Width = 8
+        Height = 16
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWhite
+        Font.Height = -16
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object bvlIP: TBevel
+        Left = 126
+        Top = 0
+        Width = 2
+        Height = 25
+        Align = alRight
+        ExplicitLeft = 118
+      end
+    end
+    object pnlDownUp: TPanel
+      Left = 218
+      Top = 0
+      Width = 213
+      Height = 25
+      Align = alRight
+      BevelOuter = bvNone
+      Caption = 'pnlInfo'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWhite
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      ShowCaption = False
+      TabOrder = 3
+      ExplicitLeft = 47
+      ExplicitTop = 1
+      object lblDownUp: TLabel
+        Left = 4
+        Top = 4
+        Width = 8
+        Height = 15
+        Font.Charset = GB2312_CHARSET
+        Font.Color = clWhite
+        Font.Height = -15
+        Font.Name = #23435#20307
+        Font.Style = []
+        ParentFont = False
+      end
+      object bvlDownUP: TBevel
+        Left = 211
+        Top = 0
+        Width = 2
+        Height = 25
+        Align = alRight
+        ExplicitLeft = 163
       end
     end
   end
@@ -134,17 +219,9 @@ object frmPBox: TfrmPBox
     FixedDimension = 19
     object rztbshtCenter: TRzTabSheet
       Caption = 'rztbshtCenter'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object rztbshtConfig: TRzTabSheet
       Caption = 'rztbshtConfig'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object ilMain: TImageList
