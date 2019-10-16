@@ -89,7 +89,8 @@ var
 begin
   IdIPWatch := TIdIPWatch.Create(nil);
   try
-    Result := IdIPWatch.LocalIP;
+    IdIPWatch.HistoryEnabled := False;
+    Result                   := IdIPWatch.LocalIP;
   finally
     IdIPWatch.Free;
   end;
