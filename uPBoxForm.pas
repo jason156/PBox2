@@ -30,13 +30,13 @@ type
     lblDownUp: TLabel;
     bvlDownUP: TBevel;
     procedure FormCreate(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tmrDateTimeTimer(Sender: TObject);
   private
-    FlstAllDll           : TStringList;
-    FstrActiveDllFileName: String;
-    FUIShowStyle         : TUIStyle;
-    FUIViewStyle         : Integer;
+    FlstAllDll  : TStringList;
+    FUIShowStyle: TShowStyle;
+    FUIViewStyle: TViewStyle;
     procedure ShowPageTabView(const bShow: Boolean = False);
     { 扫描插件目录 }
     procedure ScanPlugins;
@@ -49,24 +49,13 @@ type
     { 创建新的 Dll 窗体 }
     procedure CreateDllForm(const strFileName: string);
     { 销毁 Dll 窗体 }
-    procedure FreeDllForm(const strDllFileName: string);
-  public
-    {
-      strFileName      : 文件名
-      ft               : 文件类型
-      strPModuleName   : 父模块名称
-      strSModuleName   : 子模块名称
-      strFormClassName : 窗体类名
-      strFormTitleName : 窗体标题名
-      strIconFileName  : 图标
-      bShowForm        : 是否显示窗体
-    }
-    function PBoxRun_DelphiDll(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_VC_DLGDll(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_VC_MFCDll(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_QT_GUIDll(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_IMAGE_EXE(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_CommonRun(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
+    procedure FreeDllForm;
+    { 创建 DLL/EXE 窗体 }
+    function PBoxRun_DelphiDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
+    function PBoxRun_VC_DLGDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
+    function PBoxRun_VC_MFCDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
+    function PBoxRun_QT_GUIDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
+    function PBoxRun_IMAGE_EXE(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
   end;
 
 var
@@ -75,33 +64,32 @@ var
 implementation
 
 {$R *.dfm}
-{$I PBoxRun.inc}
 
-function TfrmPBox.PBoxRun_DelphiDll(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
+function TfrmPBox.PBoxRun_DelphiDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
 begin
   Result := True;
 
 end;
 
-function TfrmPBox.PBoxRun_IMAGE_EXE(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
+function TfrmPBox.PBoxRun_VC_DLGDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
 begin
   Result := True;
 
 end;
 
-function TfrmPBox.PBoxRun_QT_GUIDll(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
+function TfrmPBox.PBoxRun_VC_MFCDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
 begin
   Result := True;
 
 end;
 
-function TfrmPBox.PBoxRun_VC_DLGDll(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
+function TfrmPBox.PBoxRun_QT_GUIDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
 begin
   Result := True;
 
 end;
 
-function TfrmPBox.PBoxRun_VC_MFCDll(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
+function TfrmPBox.PBoxRun_IMAGE_EXE(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
 begin
   Result := True;
 
@@ -112,25 +100,8 @@ begin
   FlstAllDll.Free;
 end;
 
-function TfrmPBox.PBoxRun_CommonRun(const strFileName: String; const ft: TFileType; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-begin
-  Result := True;
-  case ft of
-    ftDelphiDll:
-      Result := PBoxRun_DelphiDll(strFileName, ft, strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName, bShowForm);
-    ftVCDialogDll:
-      Result := PBoxRun_VC_DLGDll(strFileName, ft, strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName, bShowForm);
-    ftVCMFCDll:
-      Result := PBoxRun_VC_MFCDll(strFileName, ft, strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName, bShowForm);
-    ftQTDll:
-      Result := PBoxRun_QT_GUIDll(strFileName, ft, strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName, bShowForm);
-    ftEXE:
-      Result := PBoxRun_IMAGE_EXE(strFileName, ft, strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName, bShowForm);
-  end;
-end;
-
 { 销毁 Dll 窗体 }
-procedure TfrmPBox.FreeDllForm(const strDllFileName: string);
+procedure TfrmPBox.FreeDllForm;
 begin
 
 end;
@@ -138,17 +109,44 @@ end;
 { 销毁上一次创建的 Dll 窗体 }
 procedure TfrmPBox.DestoryPreDllForm;
 begin
-  if FstrActiveDllFileName = '' then
-    Exit;
-
-  { 销毁 Dll 窗体 }
-  FreeDllForm(FstrActiveDllFileName);
+  FreeDllForm;
 end;
 
 { 创建新的 Dll 窗体 }
 procedure TfrmPBox.CreateDllForm(const strFileName: string);
+var
+  hDll                             : HMODULE;
+  ShowDllForm                      : TShowDllForm;
+  frm                              : TFormClass;
+  strParamModuleName, strModuleName: PAnsiChar;
+  strClassName, strWindowName      : PAnsiChar;
+  strIconFileName                  : PAnsiChar;
+  ft                               : TSPFileType;
 begin
-  FstrActiveDllFileName := strFileName;
+  hDll := LoadLibrary(PChar(strFileName));
+  if hDll = 0 then
+    Exit;
+
+  ShowDllForm := GetProcAddress(hDll, c_srDllExportName);
+  if not Assigned(ShowDllForm) then
+    Exit;
+
+  { 获取参数 }
+  ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
+
+  { 根据 DLL/EXE 文件类型的不同，创建 DLL/EXE 窗体 }
+  case ft of
+    ftDelphiDll:
+      PBoxRun_DelphiDll(strFileName, frm, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+    ftVCDialogDll:
+      PBoxRun_VC_DLGDll(strFileName, nil, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+    ftVCMFCDll:
+      PBoxRun_VC_MFCDll(strFileName, nil, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+    ftQTDll:
+      PBoxRun_QT_GUIDll(strFileName, nil, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+    ftEXE:
+      PBoxRun_IMAGE_EXE(strFileName, nil, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+  end;
 end;
 
 { 点击菜单 }
@@ -165,28 +163,29 @@ end;
 
 { 创建模块菜单 }
 procedure TfrmPBox.CreateModuleMenu(const strDllFileName: string);
-type
-  TShowDllForm = procedure(var frm: TFormClass; var strParentModuleName, strModuleName, strClassName, strWindowName: PAnsiChar; const bShow: Boolean = True); stdcall;
 var
-  hDll                                                           : HMODULE;
-  ShowDllForm                                                    : TShowDllForm;
-  frm                                                            : TFormClass;
-  strParentModuleName, strModuleName, strClassName, strWindowName: PAnsiChar;
-  mmPM                                                           : TMenuItem;
-  mmSM                                                           : TMenuItem;
-  intIndex                                                       : Integer;
+  hDll                              : HMODULE;
+  ShowDllForm                       : TShowDllForm;
+  frm                               : TFormClass;
+  strParentModuleName, strModuleName: PAnsiChar;
+  strClassName, strWindowName       : PAnsiChar;
+  strIconFileName                   : PAnsiChar;
+  mmPM                              : TMenuItem;
+  mmSM                              : TMenuItem;
+  intIndex                          : Integer;
+  ft                                : TSPFileType;
 begin
   hDll := LoadLibrary(PChar(strDllFileName));
   if hDll = 0 then
     Exit;
 
   try
-    ShowDllForm := GetProcAddress(hDll, 'ShowDllForm');
+    ShowDllForm := GetProcAddress(hDll, c_srDllExportName);
     if not Assigned(ShowDllForm) then
       Exit;
 
     { 获取 Dll 参数 }
-    ShowDllForm(frm, strParentModuleName, strModuleName, strClassName, strWindowName, False);
+    ShowDllForm(frm, ft, strParentModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
     intIndex := FlstAllDll.Add(strDllFileName);
 
     { 如果父菜单不存在，创建父菜单 }
@@ -236,7 +235,7 @@ begin
     { 扫描 EXE 文件，读取配置文件 }
 
   finally
-    if FUIShowStyle = uisMenu then
+    if FUIShowStyle = ssMenu then
     begin
       tlbMenu.Menu     := mmMain;
       mmMain.AutoMerge := True;
@@ -261,6 +260,12 @@ begin
   end;
 end;
 
+procedure TfrmPBox.FormActivate(Sender: TObject);
+begin
+  { 最大化窗体 }
+  pnlDBLClick(nil);
+end;
+
 procedure TfrmPBox.FormCreate(Sender: TObject);
 begin
   { 初始化界面 }
@@ -275,10 +280,9 @@ begin
   lblIP.Left    := (lblIP.Parent.Width - lblIP.Width) div 2;
 
   { 初始化参数 }
-  FUIShowStyle          := uisMenu;
-  FUIViewStyle          := 0;
-  FlstAllDll            := TStringList.Create;
-  FstrActiveDllFileName := '';
+  FUIShowStyle := ssMenu;
+  FUIViewStyle := vsSingle;
+  FlstAllDll   := TStringList.Create;
 
   { 扫描插件目录 }
   ScanPlugins;

@@ -1,10 +1,12 @@
 object frmPBox: TfrmPBox
   Left = 0
   Top = 0
-  Caption = 'PBox '#24037#20855#31665' v4.0'
+  Caption = 'PBox '#24037#20855#31665' v2.0'
   ClientHeight = 610
   ClientWidth = 1004
   Color = clBtnFace
+  Constraints.MinHeight = 649
+  Constraints.MinWidth = 1020
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,6 +15,7 @@ object frmPBox: TfrmPBox
   Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
+  OnActivate = FormActivate
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   PixelsPerInch = 96
@@ -47,8 +50,6 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 0
-      ExplicitLeft = 43
-      ExplicitTop = 1
       object lblInfo: TLabel
         Left = 4
         Top = 4
@@ -152,8 +153,6 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 3
-      ExplicitLeft = 47
-      ExplicitTop = 1
       object lblDownUp: TLabel
         Left = 4
         Top = 4
@@ -222,6 +221,10 @@ object frmPBox: TfrmPBox
     end
     object rztbshtConfig: TRzTabSheet
       Caption = 'rztbshtConfig'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object ilMain: TImageList

@@ -2,7 +2,7 @@ unit uCommon;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.IniFiles, IdIPWatch;
+uses Winapi.Windows, Winapi.Messages, Vcl.Forms, System.SysUtils, System.IniFiles, IdIPWatch;
 
 { 只允许运行一个实例 }
 procedure OnlyOneRunInstance;
@@ -13,21 +13,43 @@ function EnableDebugPrivilege(PrivName: string; CanDebug: Boolean): Boolean;
 { 升级数据库---执行脚本 }
 function UpdateDataBaseScript: Boolean;
 
+{ 获取本机IP }
 function GetNativeIP: String;
 
 type
-  TUIStyle  = (uisMenu, uisButton, uisList);
-  TFileType = (ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE);
+  { 界面显示方式：菜单、按钮对话框、列表 }
+  TShowStyle = (ssMenu, ssButton, ssList);
 
+  { 界面视图方式：单文档、多文档 }
+  TViewStyle = (vsSingle, vsMulti);
+
+  { 支持的文件类型 }
+  TSPFileType = (ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE);
+
+  {
+    Dll 的标准输出函数
+    函数名称：db_ShowDllForm
+    参数说明:
+    frm              : 窗体类名    ；TSPFileType 是 ftDelphiDll 时，才可用；Delphi专用，Delphi Dll 主窗体类名；其它语言置空，NULL；
+    ft               : 文件类型    ；TSPFileType
+    strPModuleName   : 父模块名称  ；
+    strSModuleName   : 子模块名称  ；
+    strFormClassName : 窗体类名    ；TSPFileType 是 ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE 才会用到， Delphi Dll 时，置空；
+    strFormTitleName : 窗体标题名  ；TSPFileType 是 ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE 才会用到， Delphi Dll 时，置空；
+    strIconFileName  : 图标文件    ；如果没有指定，从DLL/EXE获取图标；
+    bShowForm        : 是否显示窗体；扫描 DLL 时，不用显示 DLL 窗体，只是获取参数；执行时，才显示 DLL 窗体；
+  }
+  TShowDllForm = procedure(var frm: TFormClass; var ft: TSPFileType; var strParentModuleName, strModuleName, strClassName, strWindowName, strIconFileName: PAnsiChar; const bShow: Boolean = True); stdcall;
 
 const
-  c_strTitle                                  = '程序员工具箱 v4.0';
+  c_strTitle                                  = '基于 DLL 的模块化开发平台 v2.0';
   c_strUIStyle: array [0 .. 2] of ShortString = ('菜单式', '按钮式', '分栏式');
   c_strIniUISection                           = 'UI';
   c_strIniFormStyleSection                    = 'FormStyle';
   c_strIniModuleSection                       = 'Module';
   c_strMsgTitle: PChar                        = '系统提示：';
   c_strAESKey                                 = 'dbyoung@sina.com';
+  c_srDllExportName                           = 'db_ShowDllForm';
 
 implementation
 
@@ -85,6 +107,7 @@ begin
   Result := True;
 end;
 
+{ 获取本机IP }
 function GetNativeIP: String;
 var
   IdIPWatch: TIdIPWatch;
@@ -96,7 +119,6 @@ begin
   finally
     IdIPWatch.Free;
   end;
-
 end;
 
 end.

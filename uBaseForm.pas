@@ -3,8 +3,7 @@ unit uBaseForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.iniFiles,
-  Vcl.Menus, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Buttons, Vcl.ExtCtrls, uCommon;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.iniFiles, Vcl.Menus, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Buttons, Vcl.ExtCtrls, uCommon;
 
 type
   TUIBaseForm = class(TForm)
@@ -27,8 +26,6 @@ type
     procedure OnMaxClick(Sender: TObject);
     procedure OnMinClick(Sender: TObject);
     procedure OnConfigClick(Sender: TObject);
-    { 提升权限 }
-    function EnableDebugPrivilege(PrivName: string; CanDebug: Boolean): Boolean;
     procedure SetTitleString(const Value: string);
     procedure SetMulScreenPos(const Value: Boolean);
     function GetCloseToTray: Boolean;
@@ -66,9 +63,7 @@ type
   end;
 
 const
-  c_intIconSize     = 30;
-  c_strIniUISection = 'UI';
-  c_strTitle        = '程序员工具箱 v2.0';
+  c_intIconSize = 30;
 
 {$R *.res}
 
@@ -283,24 +278,6 @@ begin
   inherited;
 end;
 
-{ 提升权限 }
-function TUIBaseForm.EnableDebugPrivilege(PrivName: string; CanDebug: Boolean): Boolean;
-var
-  TP    : Winapi.Windows.TOKEN_PRIVILEGES;
-  Dummy : Cardinal;
-  hToken: THandle;
-begin
-  OpenProcessToken(GetCurrentProcess, TOKEN_ADJUST_PRIVILEGES, hToken);
-  TP.PrivilegeCount := 1;
-  LookupPrivilegeValue(nil, PChar(PrivName), TP.Privileges[0].Luid);
-  if CanDebug then
-    TP.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED
-  else
-    TP.Privileges[0].Attributes := 0;
-  Result                        := AdjustTokenPrivileges(hToken, False, TP, SizeOf(TP), nil, Dummy);
-  hToken                        := 0;
-end;
-
 function TUIBaseForm.GetCloseToTray: Boolean;
 begin
   Result := FbCloseToTray;
@@ -377,25 +354,14 @@ begin
   end;
 end;
 
+procedure TUIBaseForm.pnlDBLClick(Sender: TObject);
+begin
+  OnMaxClick(nil);
+end;
+
 procedure TUIBaseForm.OnMinClick(Sender: TObject);
 begin
   ShowWindow(Handle, SW_SHOWMINIMIZED);
-end;
-
-procedure TUIBaseForm.pnlDBLClick(Sender: TObject);
-begin
-  if WindowState = wsMaximized then
-  begin
-    ShowWindow(Handle, SW_SHOWNORMAL);
-    LoadButtonBmp(FbtnMax, 'MAX', 0);
-    FbtnMax.Hint := '最大化';
-  end
-  else
-  begin
-    ShowWindow(Handle, SW_SHOWMAXIMIZED);
-    LoadButtonBmp(FbtnMax, 'Restore', 0);
-    FbtnMax.Hint := '还原';
-  end;
 end;
 
 procedure TUIBaseForm.pnlMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
