@@ -250,11 +250,8 @@ end;
 procedure TfrmPBox.tmrDateTimeTimer(Sender: TObject);
 const
   WeekDay: array [1 .. 7] of String = ('星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日');
-var
-  intIndex: Integer;
 begin
-  intIndex        := DayOfWeek(Now);
-  lblTime.Caption := FormatDateTime('YYYY-MM-DD hh:mm:ss', Now) + ' ' + WeekDay[intIndex - 1];
+  lblTime.Caption := FormatDateTime('YYYY-MM-DD hh:mm:ss', Now) + ' ' + WeekDay[DayOfWeek(Now) - 1];
 end;
 
 procedure TfrmPBox.ShowPageTabView(const bShow: Boolean);
