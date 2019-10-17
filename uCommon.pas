@@ -16,7 +16,9 @@ function UpdateDataBaseScript: Boolean;
 function GetNativeIP: String;
 
 type
-  TUIStyle = (uisMenu, uisButton, uisList);
+  TUIStyle  = (uisMenu, uisButton, uisList);
+  TFileType = (ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE);
+
 
 const
   c_strTitle                                  = '程序员工具箱 v4.0';

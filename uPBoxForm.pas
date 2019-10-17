@@ -8,9 +8,6 @@ uses
   RzTabs;
 
 type
-  TFileType = (ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE);
-
-type
   TfrmPBox = class(TUIBaseForm)
     ilMain: TImageList;
     pnlBottom: TPanel;
