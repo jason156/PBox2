@@ -3,9 +3,12 @@ unit uPBoxForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.IniFiles, System.ImageList, System.IOUtils, System.Types,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ImgList, Vcl.ExtCtrls, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls, Vcl.StdCtrls, uCommon, uBaseForm,
-  RzTabs;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.IniFiles, System.ImageList, System.IOUtils, System.Types, System.Diagnostics,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ImgList, Vcl.ExtCtrls, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls, Vcl.StdCtrls, RzTabs,
+  uCommon, uBaseForm, HookUtils;
+
+const
+  WM_CREATENEWDLLFORM = WM_USER + 1000;
 
 type
   TfrmPBox = class(TUIBaseForm)
@@ -29,14 +32,16 @@ type
     pnlDownUp: TPanel;
     lblDownUp: TLabel;
     bvlDownUP: TBevel;
+    rztbshtDllForm: TRzTabSheet;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tmrDateTimeTimer(Sender: TObject);
   private
-    FlstAllDll  : TStringList;
-    FUIShowStyle: TShowStyle;
-    FUIViewStyle: TViewStyle;
+    FlstAllDll           : TStringList;
+    FUIShowStyle         : TShowStyle;
+    FUIViewStyle         : TViewStyle;
+    FstrCreateDllFileName: String;
     procedure ShowPageTabView(const bShow: Boolean = False);
     { 扫描插件目录 }
     procedure ScanPlugins;
@@ -46,16 +51,17 @@ type
     procedure OnMenuItemClick(Sender: TObject);
     { 销毁上一次创建的 Dll 窗体 }
     procedure DestoryPreDllForm;
-    { 创建新的 Dll 窗体 }
-    procedure CreateDllForm(const strFileName: string);
-    { 销毁 Dll 窗体 }
     procedure FreeDllForm;
+    { 创建新的 Dll 窗体 }
+    procedure CreateDllForm;
     { 创建 DLL/EXE 窗体 }
-    function PBoxRun_DelphiDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_VC_DLGDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_VC_MFCDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_QT_GUIDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
-    function PBoxRun_IMAGE_EXE(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean = True): Boolean;
+    function PBoxRun_DelphiDll: Boolean;
+    function PBoxRun_VC_DLGDll: Boolean;
+    function PBoxRun_VC_MFCDll: Boolean;
+    function PBoxRun_QT_GUIDll: Boolean;
+    function PBoxRun_IMAGE_EXE: Boolean;
+  protected
+    procedure WMCREATENEWDLLFORM(var msg: TMessage); message WM_CREATENEWDLLFORM;
   end;
 
 var
@@ -65,55 +71,148 @@ implementation
 
 {$R *.dfm}
 
-function TfrmPBox.PBoxRun_DelphiDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
+var
+  g_StrVCDialogDllClassName : String;
+  g_StrVCDialogDllWindowName: String;
+  g_hVCDllFormWnd           : THandle;
+  g_OldWndProc              : Pointer = nil;
+  g_Old_CreateWindowExW     : function(dwExStyle: DWORD; lpClassName: LPCWSTR; lpWindowName: LPCWSTR; dwStyle: DWORD; X, Y, nWidth, nHeight: Integer; hWndParent: hWnd; hMenu: hMenu; hins: HINST; lpp: Pointer): hWnd; stdcall;
+
+function TfrmPBox.PBoxRun_VC_MFCDll: Boolean;
+begin
+  Result := True;
+end;
+
+function TfrmPBox.PBoxRun_QT_GUIDll: Boolean;
+begin
+  Result := True;
+end;
+
+function TfrmPBox.PBoxRun_IMAGE_EXE: Boolean;
+begin
+  Result := True;
+end;
+
+function TfrmPBox.PBoxRun_DelphiDll: Boolean;
+begin
+  Result := True;
+end;
+
+{ 解决 dll 中，当 Dll 窗体获取焦点，主窗体变成非激活状态 }
+function NewDllFormProc(hWnd: THandle; msg: UINT; wParam: Cardinal; lParam: Cardinal): Integer; stdcall;
+begin
+  { 如果子窗体获取焦点时，激活主窗体 }
+  if msg = WM_ACTIVATE then
+  begin
+    if Application.MainForm <> nil then
+    begin
+      SendMessage(Application.MainForm.Handle, WM_NCACTIVATE, Integer(True), 0);
+    end;
+  end;
+
+  { 禁止窗体移动 }
+  if msg = WM_SYSCOMMAND then
+  begin
+    if wParam = SC_MOVE + 2 then
+    begin
+      wParam := 0;
+    end;
+  end;
+
+  { 调用原来的回调过程 }
+  Result := CallWindowProc(g_OldWndProc, hWnd, msg, wParam, lParam);
+end;
+
+function _CreateWindowExW(dwExStyle: DWORD; lpClassName: LPCWSTR; lpWindowName: LPCWSTR; dwStyle: DWORD; X, Y, nWidth, nHeight: Integer; hWndParent: hWnd; hMenu: hMenu; hins: HINST; lpp: Pointer): hWnd; stdcall;
+begin
+  { 是指定的 VC 窗体 }
+  if (lpClassName <> nil) and (lpWindowName <> nil) and (CompareText(lpClassName, g_StrVCDialogDllClassName) = 0) and (CompareText(lpWindowName, g_StrVCDialogDllWindowName) = 0) then
+  begin
+    { 创建 VC Dlll 窗体 }
+    frmPBox.rzpgcntrlAll.ActivePageIndex := 2;
+    Result                               := g_Old_CreateWindowExW($00010101, lpClassName, lpWindowName, $96C80000, 0, 0, 0, 0, hWndParent, hMenu, hins, lpp);
+    g_hVCDllFormWnd                      := Result;                                                                                                         // 保存下 VC Dll 窗体句柄
+    Winapi.Windows.SetParent(Result, frmPBox.rztbshtDllForm.Handle);                                                                                        // 设置父窗体为 TabSheet <解决 DLL 窗体 TAB 键不能用的问题>
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                                             // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                                             // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                                             // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                                             // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                                             // 删除移动菜单
+    SetWindowPos(Result, frmPBox.rztbshtDllForm.Handle, 0, 0, frmPBox.rztbshtDllForm.Width, frmPBox.rztbshtDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
+    g_OldWndProc := Pointer(GetWindowlong(Result, GWL_WNDPROC));                                                                                            // 解决 DLL 窗体获取焦点时，主窗体丢失焦点的问题
+    SetWindowLong(Result, GWL_WNDPROC, LongInt(@NewDllFormProc));                                                                                           // 拦截 DLL 窗体消息
+    PostMessage(frmPBox.Handle, WM_NCACTIVATE, 1, 0);                                                                                                       // 激活主窗体
+    UnHook(@g_Old_CreateWindowExW);                                                                                                                         // UNHOOK
+    g_Old_CreateWindowExW := nil;                                                                                                                           // UNHOOK
+  end
+  else
+  begin
+    Result := g_Old_CreateWindowExW(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hins, lpp);
+  end;
+end;
+
+{ 创建 VC Dialog Dll 窗体 }
+function TfrmPBox.PBoxRun_VC_DLGDll;
+var
+  hDll                             : HMODULE;
+  ShowDllForm                      : TShowDllForm;
+  frm                              : TFormClass;
+  ft                               : TSPFileType;
+  strParamModuleName, strModuleName: PAnsiChar;
+  strClassName, strWindowName      : PAnsiChar;
+  strIconFileName                  : PAnsiChar;
 begin
   Result := True;
 
+  { 获取参数 }
+  hDll := LoadLibrary(PChar(FstrCreateDllFileName));
+  if hDll = 0 then
+  begin
+    MessageBox(Handle, PChar(Format('加载 %s 出错，请检查文件是否完整或者被占用', [FstrCreateDllFileName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
+    Exit;
+  end;
+
+  ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
+  if not Assigned(ShowDllForm) then
+  begin
+    MessageBox(Handle, PChar(Format('加载 %s 的导出函数 %s 出错，请检查文件是否存在或者被占用', [FstrCreateDllFileName, c_strDllExportName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
+    Exit;
+  end;
+
+  try
+    ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
+    g_StrVCDialogDllClassName  := string(strClassName);
+    g_StrVCDialogDllWindowName := string(strWindowName);
+    @g_Old_CreateWindowExW     := HookProcInModule(user32, 'CreateWindowExW', @_CreateWindowExW);
+  finally
+    FreeLibrary(hDll);
+  end;
+
+  { 加载 Dll 窗体 }
+  hDll := LoadLibrary(PChar(FstrCreateDllFileName));
+  if hDll = 0 then
+  begin
+    MessageBox(Handle, PChar(Format('加载 %s 出错，请检查文件是否完整或者被占用', [FstrCreateDllFileName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
+    Exit;
+  end;
+
+  try
+    ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
+    if not Assigned(ShowDllForm) then
+    begin
+      MessageBox(Handle, PChar(Format('加载 %s 的导出函数 %s 出错，请检查文件是否存在或者被占用', [FstrCreateDllFileName, c_strDllExportName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
+      Exit;
+    end;
+
+    ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, True);
+  finally
+    FreeLibrary(hDll);
+    g_hVCDllFormWnd         := 0;
+    frmPBox.lblInfo.Caption := '';
+  end;
 end;
 
-function TfrmPBox.PBoxRun_VC_DLGDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
-begin
-  Result := True;
-
-end;
-
-function TfrmPBox.PBoxRun_VC_MFCDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
-begin
-  Result := True;
-
-end;
-
-function TfrmPBox.PBoxRun_QT_GUIDll(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
-begin
-  Result := True;
-
-end;
-
-function TfrmPBox.PBoxRun_IMAGE_EXE(const strFileName: String; const frm: TFormClass; const strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strIconFileName: String; const bShowForm: Boolean): Boolean;
-begin
-  Result := True;
-
-end;
-
-procedure TfrmPBox.FormDestroy(Sender: TObject);
-begin
-  FlstAllDll.Free;
-end;
-
-{ 销毁 Dll 窗体 }
-procedure TfrmPBox.FreeDllForm;
-begin
-
-end;
-
-{ 销毁上一次创建的 Dll 窗体 }
-procedure TfrmPBox.DestoryPreDllForm;
-begin
-  FreeDllForm;
-end;
-
-{ 创建新的 Dll 窗体 }
-procedure TfrmPBox.CreateDllForm(const strFileName: string);
+procedure TfrmPBox.WMCREATENEWDLLFORM(var msg: TMessage);
 var
   hDll                             : HMODULE;
   ShowDllForm                      : TShowDllForm;
@@ -123,30 +222,70 @@ var
   strIconFileName                  : PAnsiChar;
   ft                               : TSPFileType;
 begin
-  hDll := LoadLibrary(PChar(strFileName));
+  hDll := LoadLibrary(PChar(FstrCreateDllFileName));
   if hDll = 0 then
+  begin
+    MessageBox(Handle, PChar(Format('加载 %s 出错，请检查文件是否完整或者被占用', [FstrCreateDllFileName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
     Exit;
+  end;
 
-  ShowDllForm := GetProcAddress(hDll, c_srDllExportName);
+  ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
   if not Assigned(ShowDllForm) then
+  begin
+    MessageBox(Handle, PChar(Format('加载 %s 的导出函数 %s 出错，请检查文件是否存在或者被占用', [FstrCreateDllFileName, c_strDllExportName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
     Exit;
+  end;
 
-  { 获取参数 }
-  ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
+  try
+    ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
+  finally
+    FreeLibrary(hDll);
+  end;
 
   { 根据 DLL/EXE 文件类型的不同，创建 DLL/EXE 窗体 }
   case ft of
     ftDelphiDll:
-      PBoxRun_DelphiDll(strFileName, frm, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+      PBoxRun_DelphiDll;
     ftVCDialogDll:
-      PBoxRun_VC_DLGDll(strFileName, nil, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+      PBoxRun_VC_DLGDll;
     ftVCMFCDll:
-      PBoxRun_VC_MFCDll(strFileName, nil, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+      PBoxRun_VC_MFCDll;
     ftQTDll:
-      PBoxRun_QT_GUIDll(strFileName, nil, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+      PBoxRun_QT_GUIDll;
     ftEXE:
-      PBoxRun_IMAGE_EXE(strFileName, nil, string(PChar(strParamModuleName)), string(PChar(strModuleName)), string(PChar(strClassName)), string(PChar(strWindowName)), string(PChar(strIconFileName)), True);
+      PBoxRun_IMAGE_EXE;
   end;
+end;
+
+{ 创建新的 Dll 窗体 }
+procedure TfrmPBox.CreateDllForm;
+begin
+  PostMessage(Handle, WM_CREATENEWDLLFORM, 0, 0);
+end;
+
+procedure TfrmPBox.FreeDllForm;
+begin
+  { 关闭上一次创建的 Dll 窗体 }
+  SetWindowLong(g_hVCDllFormWnd, GWL_WNDPROC, LongInt(g_OldWndProc));
+  PostMessage(g_hVCDllFormWnd, WM_SYSCOMMAND, SC_CLOSE, 0);
+
+  while True do
+  begin
+    Application.ProcessMessages;
+    if FindWindow(PChar(g_StrVCDialogDllClassName), PChar(g_StrVCDialogDllWindowName)) = 0 then
+    begin
+      g_StrVCDialogDllClassName  := '';
+      g_StrVCDialogDllWindowName := '';
+      g_hVCDllFormWnd            := 0;
+      Break;
+    end;
+  end;
+end;
+
+{ 销毁上一次创建的 Dll 窗体 }
+procedure TfrmPBox.DestoryPreDllForm;
+begin
+  FreeDllForm;
 end;
 
 { 点击菜单 }
@@ -158,7 +297,8 @@ begin
   DestoryPreDllForm;
 
   { 创建新的 Dll 窗体 }
-  CreateDllForm((FlstAllDll.Strings[TMenuItem(Sender).Tag]));
+  FstrCreateDllFileName := FlstAllDll.Strings[TMenuItem(Sender).Tag];
+  CreateDllForm;
 end;
 
 { 创建模块菜单 }
@@ -180,7 +320,7 @@ begin
     Exit;
 
   try
-    ShowDllForm := GetProcAddress(hDll, c_srDllExportName);
+    ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
     if not Assigned(ShowDllForm) then
       Exit;
 
@@ -260,13 +400,9 @@ begin
   end;
 end;
 
-procedure TfrmPBox.FormActivate(Sender: TObject);
-begin
-  { 最大化窗体 }
-  pnlDBLClick(nil);
-end;
-
 procedure TfrmPBox.FormCreate(Sender: TObject);
+var
+  strDllModulePath: string;
 begin
   { 初始化界面 }
   ShowPageTabView(False);
@@ -285,7 +421,20 @@ begin
   FlstAllDll   := TStringList.Create;
 
   { 扫描插件目录 }
+  strDllModulePath := ExtractFilePath(ParamStr(0)) + 'plugins';
+  SetDllDirectory(PChar(strDllModulePath));
   ScanPlugins;
+end;
+
+procedure TfrmPBox.FormActivate(Sender: TObject);
+begin
+  { 最大化窗体 }
+  pnlDBLClick(nil);
+end;
+
+procedure TfrmPBox.FormDestroy(Sender: TObject);
+begin
+  FlstAllDll.Free;
 end;
 
 end.

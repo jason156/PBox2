@@ -49,7 +49,7 @@ const
   c_strIniModuleSection                       = 'Module';
   c_strMsgTitle: PChar                        = '系统提示：';
   c_strAESKey                                 = 'dbyoung@sina.com';
-  c_srDllExportName                           = 'db_ShowDllForm';
+  c_strDllExportName                          = 'db_ShowDllForm_Plugins';
 
 implementation
 
