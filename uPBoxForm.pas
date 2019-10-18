@@ -162,7 +162,7 @@ procedure TfrmPBox.OnMenuItemClick(Sender: TObject);
 begin
   lblInfo.Caption := TMenuItem(TMenuItem(Sender).Owner).Caption + ' - ' + TMenuItem(Sender).Caption;
 
-  { 如果已经创建了，就不在重新创建了 }
+  { 如果已经创建了，就不在重复创建了 }
   if (g_strCreateDllFileName <> '') and (g_strCreateDllFileName = FlstAllDll.Strings[TMenuItem(Sender).Tag]) then
     Exit;
 
