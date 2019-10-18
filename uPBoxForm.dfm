@@ -2,7 +2,7 @@ object frmPBox: TfrmPBox
   Left = 0
   Top = 0
   Caption = 'PBox '#24037#20855#31665' v2.0'
-  ClientHeight = 610
+  ClientHeight = 650
   ClientWidth = 1004
   Color = clBtnFace
   Constraints.MinHeight = 649
@@ -23,7 +23,7 @@ object frmPBox: TfrmPBox
   TextHeight = 13
   object pnlBottom: TPanel
     Left = 0
-    Top = 585
+    Top = 625
     Width = 1004
     Height = 25
     Align = alBottom
@@ -35,6 +35,7 @@ object frmPBox: TfrmPBox
     ParentCtl3D = False
     ShowCaption = False
     TabOrder = 0
+    ExplicitTop = 585
     object pnlInfo: TPanel
       Left = 431
       Top = 0
@@ -209,11 +210,12 @@ object frmPBox: TfrmPBox
     Left = 2
     Top = 100
     Width = 1002
-    Height = 483
+    Height = 523
     ActivePage = rztbshtDllForm
     Align = alCustom
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
+    ExplicitHeight = 483
     object rztbshtCenter: TTabSheet
       Caption = 'rztbshtCenter'
       ExplicitLeft = 0
@@ -230,6 +232,7 @@ object frmPBox: TfrmPBox
     end
     object rztbshtDllForm: TTabSheet
       Caption = 'rztbshtDllForm'
+      ExplicitHeight = 455
     end
   end
   object ilMain: TImageList

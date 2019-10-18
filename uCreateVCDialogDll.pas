@@ -17,8 +17,8 @@ implementation
 
 var
   g_hMainForm               : THandle = 0;
-  g_rzPage                  : TPageControl;
-  g_rzTabDllForm            : TTabSheet;
+  g_Page                    : TPageControl;
+  g_TabDllForm              : TTabSheet;
   g_strVCDialogDllClassName : String  = '';
   g_strVCDialogDllWindowName: String  = '';
   g_OldWndProc              : Pointer = nil;
@@ -55,21 +55,22 @@ begin
   if (lpClassName <> nil) and (lpWindowName <> nil) and (CompareText(lpClassName, g_strVCDialogDllClassName) = 0) and (CompareText(lpWindowName, g_strVCDialogDllWindowName) = 0) then
   begin
     { 创建 VC Dlll 窗体 }
-    g_rzPage.ActivePageIndex   := 2;
+    g_Page.ActivePageIndex     := 2;
     Result                     := g_Old_CreateWindowExW($00010101, lpClassName, lpWindowName, $96C80000, 0, 0, 0, 0, hWndParent, hMenu, hins, lpp);
-    g_intVCDialogDllFormHandle := Result;                                                                                           // 保存下 VC Dll 窗体句柄
-    Winapi.Windows.SetParent(Result, g_rzTabDllForm.Handle);                                                                        // 设置父窗体为 TabSheet <解决 DLL 窗体 TAB 键不能用的问题>
-    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                     // 删除移动菜单
-    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                     // 删除移动菜单
-    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                     // 删除移动菜单
-    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                     // 删除移动菜单
-    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                                     // 删除移动菜单
-    SetWindowPos(Result, g_rzTabDllForm.Handle, 0, 0, g_rzTabDllForm.Width, g_rzTabDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
-    g_OldWndProc := Pointer(GetWindowlong(Result, GWL_WNDPROC));                                                                    // 解决 DLL 窗体获取焦点时，主窗体丢失焦点的问题
-    SetWindowLong(Result, GWL_WNDPROC, LongInt(@NewDllFormProc));                                                                   // 拦截 DLL 窗体消息
-    PostMessage(g_hMainForm, WM_NCACTIVATE, 1, 0);                                                                                  // 激活主窗体
-    UnHook(@g_Old_CreateWindowExW);                                                                                                 // UNHOOK
-    g_Old_CreateWindowExW := nil;                                                                                                   // UNHOOK
+    g_intVCDialogDllFormHandle := Result;                                                                                     // 保存下 VC Dll 窗体句柄
+    Winapi.Windows.SetParent(Result, g_TabDllForm.Handle);                                                                    // 设置父窗体为 TabSheet <解决 DLL 窗体 TAB 键不能用的问题>
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
+    RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
+    SetWindowPos(Result, g_TabDllForm.Handle, 0, 0, g_TabDllForm.Width, g_TabDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
+    g_OldWndProc := Pointer(GetWindowlong(Result, GWL_WNDPROC));                                                              // 解决 DLL 窗体获取焦点时，主窗体丢失焦点的问题
+    SetWindowLong(Result, GWL_WNDPROC, LongInt(@NewDllFormProc));                                                             // 拦截 DLL 窗体消息
+    PostMessage(g_hMainForm, WM_NCACTIVATE, 1, 0);                                                                            // 激活主窗体
+    UnHook(@g_Old_CreateWindowExW);                                                                                           // UNHOOK
+    g_Old_CreateWindowExW := nil;                                                                                             // UNHOOK
   end
   else
   begin
@@ -89,9 +90,9 @@ var
   strIconFileName                  : PAnsiChar;
   strBakDllFileName                : String;
 begin
-  g_hMainForm    := hMainForm;
-  g_rzPage       := Page;
-  g_rzTabDllForm := TabDllForm;
+  g_hMainForm  := hMainForm;
+  g_Page       := Page;
+  g_TabDllForm := TabDllForm;
 
   { 获取参数 }
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
