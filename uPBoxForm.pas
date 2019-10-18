@@ -3,7 +3,7 @@ unit uPBoxForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin,
   uCommon, uBaseForm, uCreateDelphiDll, uCreateVCDialogDll;
 
@@ -37,15 +37,19 @@ type
     procedure FormResize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    FlstAllDll    : TStringList;
+    FlstAllDll    : THashedStringList;
     FUIShowStyle  : TShowStyle;
     FUIViewStyle  : TViewStyle;
     FDelphiDllForm: TForm;
     procedure ShowPageTabView(const bShow: Boolean = False);
+    { 扫描 EXE 文件，读取配置文件 }
+    procedure ScanPlugins_EXE;
+    { 扫描 Dll 文件，仅限于插件目录(plugins) }
+    procedure ScanPlugins_Dll;
     { 扫描插件目录 }
     procedure ScanPlugins;
     { 创建模块菜单 }
-    procedure CreateModuleMenu(const strDllFileName: string);
+    procedure CreateModuleMenu;
     { 点击菜单 }
     procedure OnMenuItemClick(Sender: TObject);
     { 创建新的 Dll 窗体 }
@@ -172,59 +176,106 @@ begin
   PostMessage(Handle, WM_DESTORYPREDLLFORM, 0, 0);
 end;
 
-{ 创建模块菜单 }
-procedure TfrmPBox.CreateModuleMenu(const strDllFileName: string);
+{ 扫描 EXE 文件，读取配置文件 }
+procedure TfrmPBox.ScanPlugins_EXE;
 var
-  hDll                              : HMODULE;
-  ShowDllForm                       : TShowDllForm;
-  frm                               : TFormClass;
-  strParentModuleName, strModuleName: PAnsiChar;
-  strClassName, strWindowName       : PAnsiChar;
-  strIconFileName                   : PAnsiChar;
-  mmPM                              : TMenuItem;
-  mmSM                              : TMenuItem;
-  intIndex                          : Integer;
-  ft                                : TSPFileType;
+  lstEXE     : TStringList;
+  I          : Integer;
+  strEXEInfo : String;
+  strFileName: String;
 begin
-  hDll := LoadLibrary(PChar(strDllFileName));
-  if hDll = 0 then
+  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+  begin
+    lstEXE := TStringList.Create;
+    try
+      ReadSection('EXE', lstEXE);
+      for I := 0 to lstEXE.Count - 1 do
+      begin
+        strFileName := lstEXE.Strings[I];
+        strEXEInfo  := ReadString('EXE', strFileName, '');
+        FlstAllDll.Add(Format('%s=%s', [strFileName, strEXEInfo]));
+      end;
+    finally
+      lstEXE.Free;
+    end;
+    Free;
+  end;
+end;
+
+procedure TfrmPBox.ScanPlugins_Dll;
+var
+  hDll                          : HMODULE;
+  ShowDllForm                   : TShowDllForm;
+  frm                           : TFormClass;
+  strPModuleName, strSModuleName: PAnsiChar;
+  strClassName, strWindowName   : PAnsiChar;
+  strIconFileName               : PAnsiChar;
+  arrDllFile                    : TStringDynArray;
+  strDllFileName                : String;
+  ft                            : TSPFileType;
+begin
+  { 扫描 Dll 文件，仅限于插件目录(plugins) }
+  arrDllFile := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)) + 'plugins', '*.dll');
+  if Length(arrDllFile) <= 0 then
     Exit;
 
-  try
-    ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
-    if not Assigned(ShowDllForm) then
-      Exit;
+  for strDllFileName in arrDllFile do
+  begin
+    hDll := LoadLibrary(PChar(strDllFileName));
+    if hDll = 0 then
+      Continue;
 
-    { 获取 Dll 参数 }
-    ShowDllForm(frm, ft, strParentModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
-    intIndex := FlstAllDll.Add(strDllFileName);
+    try
+      ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
+      if not Assigned(ShowDllForm) then
+        Continue;
+
+      { 获取 Dll 参数 }
+      ShowDllForm(frm, ft, strPModuleName, strSModuleName, strClassName, strWindowName, strIconFileName, False);
+      FlstAllDll.Add(Format('%s=%s,%s,%s,%s,%s', [strDllFileName, strPModuleName, strSModuleName, strClassName, strWindowName, strIconFileName]));
+    finally
+      FreeLibrary(hDll);
+    end;
+  end;
+end;
+
+{ 创建模块菜单 }
+procedure TfrmPBox.CreateModuleMenu;
+var
+  I             : Integer;
+  strInfo       : String;
+  strPModuleName: String;
+  strSModuleName: String;
+  mmPM          : TMenuItem;
+  mmSM          : TMenuItem;
+begin
+  for I := 0 to FlstAllDll.Count - 1 do
+  begin
+    strInfo        := FlstAllDll.ValueFromIndex[I];
+    strPModuleName := strInfo.Split([','])[0];
+    strSModuleName := strInfo.Split([','])[1];
 
     { 如果父菜单不存在，创建父菜单 }
-    mmPM := mmMain.Items.Find(string(strParentModuleName));
+    mmPM := mmMain.Items.Find(string(strPModuleName));
     if mmPM = nil then
     begin
       mmPM         := TMenuItem.Create(mmMain);
-      mmPM.Caption := string((strParentModuleName));
+      mmPM.Caption := string((strPModuleName));
       mmMain.Items.Add(mmPM);
     end;
 
     { 创建子菜单 }
     mmSM         := TMenuItem.Create(mmPM);
-    mmSM.Caption := string((strModuleName));
-    mmSM.Tag     := intIndex;
+    mmSM.Caption := string((strSModuleName));
+    mmSM.Tag     := I;
     mmSM.OnClick := OnMenuItemClick;
     mmPM.Add(mmSM);
 
-  finally
-    FreeLibrary(hDll);
   end;
 end;
 
 { 扫描插件目录 }
 procedure TfrmPBox.ScanPlugins;
-var
-  arrDllFile    : TStringDynArray;
-  strDllFileName: String;
 begin
   if not DirectoryExists(ExtractFilePath(ParamStr(0)) + 'plugins') then
     Exit;
@@ -232,19 +283,14 @@ begin
   mmMain.Items.Clear;
   mmMain.AutoMerge := False;
   try
-    { 扫描 Dll 文件，仅限于插件目录(plugins) }
-    arrDllFile := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)) + 'plugins', '*.dll');
-    if Length(arrDllFile) <= 0 then
-      Exit;
+    { 扫描 Dll 文件，添加到列表；仅限于插件目录 (plugins) }
+    ScanPlugins_Dll;
 
-    for strDllFileName in arrDllFile do
-    begin
-      { 创建模块菜单 }
-      CreateModuleMenu(strDllFileName);
-    end;
+    { 扫描 EXE 文件，添加到列表；读取配置文件 }
+    ScanPlugins_EXE;
 
-    { 扫描 EXE 文件，读取配置文件 }
-
+    { 创建模块菜单 }
+    CreateModuleMenu;
   finally
     if FUIShowStyle = ssMenu then
     begin
@@ -295,7 +341,7 @@ begin
   { 初始化参数 }
   FUIShowStyle           := ssMenu;
   FUIViewStyle           := vsSingle;
-  FlstAllDll             := TStringList.Create;
+  FlstAllDll             := THashedStringList.Create;
   g_strCreateDllFileName := '';
   FDelphiDllForm         := nil;
 
