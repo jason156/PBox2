@@ -2,5 +2,5 @@ Win64
 Win32
 /PBox.identcache
 /PBox.dproj.local
-
-
+/bin/x86/PBox.exe
+/bin/x64/PBox.exe
