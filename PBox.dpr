@@ -7,7 +7,8 @@ program PBox;
 uses
   Vcl.Forms,
   uPBoxForm in 'uPBoxForm.pas' {frmPBox},
-  uCommon in 'uCommon.pas';
+  uCommon in 'uCommon.pas',
+  uCreateVCDialogDll in 'uCreateVCDialogDll.pas';
 
 {$R *.res}
 

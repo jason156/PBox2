@@ -18,6 +18,7 @@ object frmPBox: TfrmPBox
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   PixelsPerInch = 96
   TextHeight = 13
   object pnlBottom: TPanel
@@ -224,10 +225,6 @@ object frmPBox: TfrmPBox
     end
     object rztbshtDllForm: TRzTabSheet
       Caption = 'rztbshtDllForm'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
   end
   object ilMain: TImageList
