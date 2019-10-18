@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList,
-  Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin, RzTabs,
+  Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin,
   uCommon, uBaseForm, uCreateVCDialogDll;
 
 type
@@ -19,9 +19,9 @@ type
     pnlTime: TPanel;
     lblTime: TLabel;
     tmrDateTime: TTimer;
-    rzpgcntrlAll: TRzPageControl;
-    rztbshtCenter: TRzTabSheet;
-    rztbshtConfig: TRzTabSheet;
+    rzpgcntrlAll: TPageControl;
+    rztbshtCenter: TTabSheet;
+    rztbshtConfig: TTabSheet;
     pnlIP: TPanel;
     lblIP: TLabel;
     bvlIP: TBevel;
@@ -29,7 +29,7 @@ type
     pnlDownUp: TPanel;
     lblDownUp: TLabel;
     bvlDownUP: TBevel;
-    rztbshtDllForm: TRzTabSheet;
+    rztbshtDllForm: TTabSheet;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -209,7 +209,7 @@ begin
     mmPM.Add(mmSM);
 
   finally
-    FreeLibrary(hDll)
+    FreeLibrary(hDll);
   end;
 end;
 
@@ -227,13 +227,13 @@ begin
   try
     { 扫描 Dll 文件，仅限于插件目录(plugins) }
     arrDllFile := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)) + 'plugins', '*.dll');
-    if Length(arrDllFile) > 0 then
+    if Length(arrDllFile) <= 0 then
+      Exit;
+
+    for strDllFileName in arrDllFile do
     begin
-      for strDllFileName in arrDllFile do
-      begin
-        { 创建模块菜单 }
-        CreateModuleMenu(strDllFileName);
-      end;
+      { 创建模块菜单 }
+      CreateModuleMenu(strDllFileName);
     end;
 
     { 扫描 EXE 文件，读取配置文件 }

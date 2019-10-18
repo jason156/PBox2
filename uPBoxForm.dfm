@@ -205,25 +205,30 @@ object frmPBox: TfrmPBox
       TabOrder = 0
     end
   end
-  object rzpgcntrlAll: TRzPageControl
+  object rzpgcntrlAll: TPageControl
     Left = 2
     Top = 100
     Width = 1002
     Height = 483
-    Hint = ''
     ActivePage = rztbshtDllForm
     Align = alCustom
     Anchors = [akLeft, akTop, akRight, akBottom]
-    TabIndex = 2
     TabOrder = 2
-    FixedDimension = 19
-    object rztbshtCenter: TRzTabSheet
+    object rztbshtCenter: TTabSheet
       Caption = 'rztbshtCenter'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
-    object rztbshtConfig: TRzTabSheet
+    object rztbshtConfig: TTabSheet
       Caption = 'rztbshtConfig'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
-    object rztbshtDllForm: TRzTabSheet
+    object rztbshtDllForm: TTabSheet
       Caption = 'rztbshtDllForm'
     end
   end

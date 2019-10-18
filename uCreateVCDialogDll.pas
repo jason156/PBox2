@@ -5,10 +5,10 @@ unit uCreateVCDialogDll;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, System.SysUtils, Vcl.Forms, Vcl.StdCtrls, RzTabs, uCommon, HookUtils;
+uses Winapi.Windows, Winapi.Messages, System.SysUtils, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, uCommon, HookUtils;
 
 { 创建 VC Dialog Dll 窗体 }
-procedure PBoxRun_VC_DLGDll(const hMainForm: THandle; rzPage: TRzPageControl; const rzTabDllForm: TRzTabSheet; lblInfo: TLabel);
+procedure PBoxRun_VC_DLGDll(const hMainForm: THandle; Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
 
 { 销毁 VC Dialog Dll 窗体消息 }
 procedure FreeVCDialogDllForm;
@@ -17,8 +17,8 @@ implementation
 
 var
   g_hMainForm               : THandle = 0;
-  g_rzPage                  : TRzPageControl;
-  g_rzTabDllForm            : TRzTabSheet;
+  g_rzPage                  : TPageControl;
+  g_rzTabDllForm            : TTabSheet;
   g_strVCDialogDllClassName : String  = '';
   g_strVCDialogDllWindowName: String  = '';
   g_OldWndProc              : Pointer = nil;
@@ -78,7 +78,7 @@ begin
 end;
 
 { 创建 VC Dialog Dll 窗体 }
-procedure PBoxRun_VC_DLGDll(const hMainForm: THandle; rzPage: TRzPageControl; const rzTabDllForm: TRzTabSheet; lblInfo: TLabel);
+procedure PBoxRun_VC_DLGDll(const hMainForm: THandle; Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
 var
   hDll                             : HMODULE;
   ShowDllForm                      : TShowDllForm;
@@ -90,8 +90,8 @@ var
   strBakDllFileName                : String;
 begin
   g_hMainForm    := hMainForm;
-  g_rzPage       := rzPage;
-  g_rzTabDllForm := rzTabDllForm;
+  g_rzPage       := Page;
+  g_rzTabDllForm := TabDllForm;
 
   { 获取参数 }
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
