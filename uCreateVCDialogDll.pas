@@ -96,20 +96,8 @@ begin
 
   { 获取参数 }
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
-  if hDll = 0 then
-  begin
-    MessageBox(hMainForm, PChar(Format('加载 %s 出错，请检查文件是否完整或者被占用', [g_strCreateDllFileName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
-  ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
-  if not Assigned(ShowDllForm) then
-  begin
-    MessageBox(hMainForm, PChar(Format('加载 %s 的导出函数 %s 出错，请检查文件是否存在或者被占用', [g_strCreateDllFileName, c_strDllExportName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
   try
+    ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
     ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
     g_strVCDialogDllClassName  := string(strClassName);
     g_strVCDialogDllWindowName := string(strWindowName);
@@ -120,12 +108,6 @@ begin
 
   { 加载 Dll 窗体 }
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
-  if hDll = 0 then
-  begin
-    MessageBox(hMainForm, PChar(Format('加载 %s 出错，请检查文件是否完整或者被占用', [g_strCreateDllFileName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
   try
     ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
     if not Assigned(ShowDllForm) then
@@ -142,16 +124,23 @@ begin
     g_strVCDialogDllClassName  := '';
     g_strVCDialogDllWindowName := '';
 
-    if CompareText(strBakDllFileName, g_strCreateDllFileName) = 0 then
+    if g_bExitProgram then
     begin
-      { 如果销毁的 Dll，正是先前备份的 Dll，表示没有 Dll Form 需要创建； }
-      g_strCreateDllFileName := '';
-      lblInfo.Caption        := '';
+      Application.MainForm.Close;
     end
     else
     begin
-      { 如果不是先前备份的，说明新的 Dll Form 创建来了 }
-      PostMessage(hMainForm, WM_CREATENEWDLLFORM, 0, 0);
+      if CompareText(strBakDllFileName, g_strCreateDllFileName) = 0 then
+      begin
+        { 如果销毁的 Dll，正是先前备份的 Dll，表示没有 Dll Form 需要创建； }
+        g_strCreateDllFileName := '';
+        lblInfo.Caption        := '';
+      end
+      else
+      begin
+        { 如果不是先前备份的，说明新的 Dll Form 创建来了 }
+        PostMessage(hMainForm, WM_CREATENEWDLLFORM, 0, 0);
+      end;
     end;
   end;
 end;
@@ -159,6 +148,9 @@ end;
 { 销毁 VC Dialog Dll 窗体消息 }
 procedure FreeVCDialogDllForm;
 begin
+  if g_intVCDialogDllFormHandle = 0 then
+    Exit;
+
   SetWindowLong(g_intVCDialogDllFormHandle, GWL_WNDPROC, LongInt(g_OldWndProc));
   PostMessage(g_intVCDialogDllFormHandle, WM_SYSCOMMAND, SC_CLOSE, 0);
 end;

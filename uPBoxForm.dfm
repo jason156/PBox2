@@ -16,6 +16,7 @@ object frmPBox: TfrmPBox
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnResize = FormResize
@@ -35,7 +36,6 @@ object frmPBox: TfrmPBox
     ParentCtl3D = False
     ShowCaption = False
     TabOrder = 0
-    ExplicitTop = 585
     object pnlInfo: TPanel
       Left = 431
       Top = 0
@@ -215,7 +215,6 @@ object frmPBox: TfrmPBox
     Align = alCustom
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
-    ExplicitHeight = 483
     object rztbshtCenter: TTabSheet
       Caption = 'rztbshtCenter'
       ExplicitLeft = 0
@@ -232,7 +231,6 @@ object frmPBox: TfrmPBox
     end
     object rztbshtDllForm: TTabSheet
       Caption = 'rztbshtDllForm'
-      ExplicitHeight = 455
     end
   end
   object ilMain: TImageList

@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList,
-  Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin,
   uCommon, uBaseForm, uCreateVCDialogDll;
 
 type
@@ -22,6 +22,7 @@ type
     rzpgcntrlAll: TPageControl;
     rztbshtCenter: TTabSheet;
     rztbshtConfig: TTabSheet;
+    rztbshtDllForm: TTabSheet;
     pnlIP: TPanel;
     lblIP: TLabel;
     bvlIP: TBevel;
@@ -29,16 +30,17 @@ type
     pnlDownUp: TPanel;
     lblDownUp: TLabel;
     bvlDownUP: TBevel;
-    rztbshtDllForm: TTabSheet;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tmrDateTimeTimer(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    FlstAllDll  : TStringList;
-    FUIShowStyle: TShowStyle;
-    FUIViewStyle: TViewStyle;
+    FlstAllDll    : TStringList;
+    FUIShowStyle  : TShowStyle;
+    FUIViewStyle  : TViewStyle;
+    FDelphiDllForm: TForm;
     procedure ShowPageTabView(const bShow: Boolean = False);
     { 扫描插件目录 }
     procedure ScanPlugins;
@@ -49,10 +51,11 @@ type
     { 创建新的 Dll 窗体 }
     procedure CreateDllForm;
     { 创建 DLL/EXE 窗体 }
-    function PBoxRun_DelphiDll: Boolean;
+    procedure PBoxRun_DelphiDll;
     function PBoxRun_VC_MFCDll: Boolean;
     function PBoxRun_QT_GUIDll: Boolean;
     function PBoxRun_IMAGE_EXE: Boolean;
+    procedure OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
   protected
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
     procedure WMCREATENEWDLLFORM(var msg: TMessage); message WM_CREATENEWDLLFORM;
@@ -80,9 +83,33 @@ begin
   Result := True;
 end;
 
-function TfrmPBox.PBoxRun_DelphiDll: Boolean;
+procedure TfrmPBox.PBoxRun_DelphiDll;
+var
+  hDll                             : HMODULE;
+  ShowDllForm                      : TShowDllForm;
+  frm                              : TFormClass;
+  strParamModuleName, strModuleName: PAnsiChar;
+  strClassName, strWindowName      : PAnsiChar;
+  strIconFileName                  : PAnsiChar;
+  ft                               : TSPFileType;
 begin
-  Result := True;
+  hDll        := LoadLibrary(PChar(g_strCreateDllFileName));
+  ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
+  ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
+  FDelphiDllForm             := frm.Create(nil);
+  FDelphiDllForm.BorderIcons := [biSystemMenu];
+  FDelphiDllForm.Position    := poDesigned;
+  FDelphiDllForm.Caption     := string(strModuleName);
+  FDelphiDllForm.BorderStyle := bsDialog;
+  FDelphiDllForm.Color       := clWhite;
+  FDelphiDllForm.Anchors     := [akLeft, akTop, akRight, akBottom];
+  FDelphiDllForm.Tag         := hDll;
+  FDelphiDllForm.OnClose     := OnDelphiDllFormClose;                                                                                            // 将主窗体句柄放在 DllForm 的 tag 中，方便 Dll Form 获取主窗体句柄。注意：Dll Form 使用此句柄，必须等到 Dll Form 的 FormCreate 之后，才能使用此句柄
+  SetWindowPos(FDelphiDllForm.Handle, rztbshtDllForm.Handle, 0, 0, rztbshtDllForm.Width, rztbshtDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
+  Winapi.Windows.SetParent(FDelphiDllForm.Handle, rztbshtDllForm.Handle);                                                                        // 设置父窗体为 TabSheet <解决 DLL 窗体 TAB 键不能用的问题>
+  RemoveMenu(GetSystemMenu(FDelphiDllForm.Handle, False), 0, MF_BYPOSITION);                                                                     // 删除移动菜单
+  FDelphiDllForm.Show;                                                                                                                           // 显示 Dll 子窗体
+  rzpgcntrlAll.ActivePage := rztbshtDllForm;
 end;
 
 procedure TfrmPBox.WMCREATENEWDLLFORM(var msg: TMessage);
@@ -96,20 +123,8 @@ var
   ft                               : TSPFileType;
 begin
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
-  if hDll = 0 then
-  begin
-    MessageBox(Handle, PChar(Format('加载 %s 出错，请检查文件是否完整或者被占用', [g_strCreateDllFileName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
-  ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
-  if not Assigned(ShowDllForm) then
-  begin
-    MessageBox(Handle, PChar(Format('加载 %s 的导出函数 %s 出错，请检查文件是否存在或者被占用', [g_strCreateDllFileName, c_strDllExportName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
-    Exit;
-  end;
-
   try
+    ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
     ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
   finally
     FreeLibrary(hDll);
@@ -136,9 +151,31 @@ begin
   PostMessage(Handle, WM_CREATENEWDLLFORM, 0, 0);
 end;
 
+procedure TfrmPBox.OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if FDelphiDllForm <> nil then
+  begin
+    FDelphiDllForm         := nil;
+    g_strCreateDllFileName := '';
+    lblInfo.Caption        := '';
+  end;
+end;
+
 { 销毁上一次创建的 Dll 窗体 }
 procedure TfrmPBox.WMDESTORYPREDLLFORM(var msg: TMessage);
+var
+  hDll: HMODULE;
 begin
+  if FDelphiDllForm <> nil then
+  begin
+    hDll := FDelphiDllForm.Tag;
+    FDelphiDllForm.Free;
+    FDelphiDllForm := nil;
+    FreeLibrary(hDll);
+    CreateDllForm;
+    Exit;
+  end;
+
   if g_intVCDialogDllFormHandle = 0 then
   begin
     { 创建新的 Dll 窗体 }
@@ -264,6 +301,12 @@ begin
   end;
 end;
 
+procedure TfrmPBox.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  g_bExitProgram := True;
+  FreeVCDialogDllForm;
+end;
+
 procedure TfrmPBox.FormCreate(Sender: TObject);
 var
   strDllModulePath: string;
@@ -284,6 +327,7 @@ begin
   FUIViewStyle           := vsSingle;
   FlstAllDll             := TStringList.Create;
   g_strCreateDllFileName := '';
+  FDelphiDllForm         := nil;
 
   { 扫描插件目录 }
   strDllModulePath := ExtractFilePath(ParamStr(0)) + 'plugins';
