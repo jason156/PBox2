@@ -8,7 +8,8 @@ uses
   Vcl.Forms,
   uPBoxForm in 'uPBoxForm.pas' {frmPBox},
   uCommon in 'uCommon.pas',
-  uCreateVCDialogDll in 'uCreateVCDialogDll.pas';
+  uCreateVCDialogDll in 'uCreateVCDialogDll.pas',
+  uCreateDelphiDll in 'uCreateDelphiDll.pas';
 
 {$R *.res}
 

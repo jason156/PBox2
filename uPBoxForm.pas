@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin,
-  uCommon, uBaseForm, uCreateVCDialogDll;
+  uCommon, uBaseForm, uCreateDelphiDll, uCreateVCDialogDll;
 
 type
   TfrmPBox = class(TUIBaseForm)
@@ -50,8 +50,7 @@ type
     procedure OnMenuItemClick(Sender: TObject);
     { 创建新的 Dll 窗体 }
     procedure CreateDllForm;
-    { 创建 DLL/EXE 窗体 }
-    procedure PBoxRun_DelphiDll;
+
     function PBoxRun_VC_MFCDll: Boolean;
     function PBoxRun_QT_GUIDll: Boolean;
     function PBoxRun_IMAGE_EXE: Boolean;
@@ -83,35 +82,6 @@ begin
   Result := True;
 end;
 
-procedure TfrmPBox.PBoxRun_DelphiDll;
-var
-  hDll                             : HMODULE;
-  ShowDllForm                      : TShowDllForm;
-  frm                              : TFormClass;
-  strParamModuleName, strModuleName: PAnsiChar;
-  strClassName, strWindowName      : PAnsiChar;
-  strIconFileName                  : PAnsiChar;
-  ft                               : TSPFileType;
-begin
-  hDll        := LoadLibrary(PChar(g_strCreateDllFileName));
-  ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
-  ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
-  FDelphiDllForm             := frm.Create(nil);
-  FDelphiDllForm.BorderIcons := [biSystemMenu];
-  FDelphiDllForm.Position    := poDesigned;
-  FDelphiDllForm.Caption     := string(strModuleName);
-  FDelphiDllForm.BorderStyle := bsDialog;
-  FDelphiDllForm.Color       := clWhite;
-  FDelphiDllForm.Anchors     := [akLeft, akTop, akRight, akBottom];
-  FDelphiDllForm.Tag         := hDll;
-  FDelphiDllForm.OnClose     := OnDelphiDllFormClose;                                                                                            // 将主窗体句柄放在 DllForm 的 tag 中，方便 Dll Form 获取主窗体句柄。注意：Dll Form 使用此句柄，必须等到 Dll Form 的 FormCreate 之后，才能使用此句柄
-  SetWindowPos(FDelphiDllForm.Handle, rztbshtDllForm.Handle, 0, 0, rztbshtDllForm.Width, rztbshtDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
-  Winapi.Windows.SetParent(FDelphiDllForm.Handle, rztbshtDllForm.Handle);                                                                        // 设置父窗体为 TabSheet <解决 DLL 窗体 TAB 键不能用的问题>
-  RemoveMenu(GetSystemMenu(FDelphiDllForm.Handle, False), 0, MF_BYPOSITION);                                                                     // 删除移动菜单
-  FDelphiDllForm.Show;                                                                                                                           // 显示 Dll 子窗体
-  rzpgcntrlAll.ActivePage := rztbshtDllForm;
-end;
-
 procedure TfrmPBox.WMCREATENEWDLLFORM(var msg: TMessage);
 var
   hDll                             : HMODULE;
@@ -133,7 +103,7 @@ begin
   { 根据 DLL/EXE 文件类型的不同，创建 DLL/EXE 窗体 }
   case ft of
     ftDelphiDll:
-      PBoxRun_DelphiDll;
+      PBoxRun_DelphiDll(FDelphiDllForm, rzpgcntrlAll, rztbshtDllForm, OnDelphiDllFormClose);
     ftVCDialogDll:
       PBoxRun_VC_DLGDll(Handle, rzpgcntrlAll, rztbshtDllForm, lblInfo);
     ftVCMFCDll:
