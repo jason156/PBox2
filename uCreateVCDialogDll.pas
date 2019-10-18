@@ -58,7 +58,7 @@ begin
     g_Page.ActivePageIndex     := 2;
     Result                     := g_Old_CreateWindowExW($00010101, lpClassName, lpWindowName, $96C80000, 0, 0, 0, 0, hWndParent, hMenu, hins, lpp);
     g_intVCDialogDllFormHandle := Result;                                                                                     // 保存下 VC Dll 窗体句柄
-    Winapi.Windows.SetParent(Result, g_TabDllForm.Handle);                                                                    // 设置父窗体为 TabSheet <解决 DLL 窗体 TAB 键不能用的问题>
+    Winapi.Windows.SetParent(Result, g_TabDllForm.Handle);                                                                    // 设置父窗体为 TabSheet
     RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
     RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
     RemoveMenu(GetSystemMenu(Result, False), 0, MF_BYPOSITION);                                                               // 删除移动菜单
