@@ -3,9 +3,9 @@ unit uPBoxForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles,
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin,
-  uCommon, uBaseForm, uCreateDelphiDll, uCreateVCDialogDll;
+  uCommon, uBaseForm, HookUtils, uCreateDelphiDll, uCreateVCDialogDll;
 
 type
   TfrmPBox = class(TUIBaseForm)
@@ -57,7 +57,7 @@ type
 
     function PBoxRun_VC_MFCDll: Boolean;
     function PBoxRun_QT_GUIDll: Boolean;
-    function PBoxRun_IMAGE_EXE: Boolean;
+    procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String);
     procedure OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
   protected
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
@@ -71,6 +71,13 @@ implementation
 
 {$R *.dfm}
 
+var
+  g_strEXEFormClassName  : string  = '';
+  g_strEXEFormTitleName  : string  = '';
+  g_OldEXEWndProc        : Pointer = nil;
+  g_OldEXE_CreateProcessW: function(lpApplicationName: LPCWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCWSTR; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall;
+  FhWnd                  : THandle;
+
 function TfrmPBox.PBoxRun_VC_MFCDll: Boolean;
 begin
   Result := True;
@@ -81,25 +88,74 @@ begin
   Result := True;
 end;
 
-function TfrmPBox.PBoxRun_IMAGE_EXE: Boolean;
+function _EXE_CreateProcessW(lpApplicationName: LPCWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCWSTR; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall;
 begin
-  Result := True;
+  Result := g_OldEXE_CreateProcessW(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
+
+  while True do
+  begin
+    FhWnd := FindWindow(PChar(g_strEXEFormClassName), PChar(g_strEXEFormTitleName));
+    if FhWnd <> 0 then
+      Break;
+  end;
+
+  SetWindowPos(FhWnd, frmPBox.rztbshtDllForm.Handle, 0, 0, frmPBox.rztbshtDllForm.Width, frmPBox.rztbshtDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
+  Winapi.Windows.SetParent(FhWnd, frmPBox.rztbshtDllForm.Handle);                                                                                        // 设置父窗体为 TabSheet
+  // SetWindowLong(FhWnd, GWL_STYLE, $96000000);
+  // SetWindowLong(FhWnd, GWL_EXSTYLE, $00010101);
+  SetWindowLong(FhWnd, GWL_STYLE, $96C80000);
+  SetWindowLong(FhWnd, GWL_EXSTYLE, $00010000);
+  ShowWindow(FhWnd, SW_SHOWNORMAL);
+  frmPBox.Height := frmPBox.Height + 1;
+  frmPBox.Height := frmPBox.Height - 1;
+end;
+
+procedure TfrmPBox.PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String);
+begin
+  g_strEXEFormClassName := strFileValue.Split([','])[2];
+  g_strEXEFormTitleName := strFileValue.Split([','])[3];
+
+  if TOSVersion.Major = 7 then
+  begin
+    { 如果是 WINDOWS7 系统 }
+    if @g_OldEXE_CreateProcessW = nil then
+      @g_OldEXE_CreateProcessW := HookProcInModule(kernel32, 'CreateProcessW', @_EXE_CreateProcessW);
+  end;
+
+  if TOSVersion.Major = 7 then
+  begin
+    { 如果是 WINDOWS10 系统 }
+
+  end;
+
+  { 创建 EXE 进程，并隐藏窗体 }
+  ShellExecute(Handle, 'Open', PChar(strEXEFileName), nil, nil, SW_HIDE);
 end;
 
 procedure TfrmPBox.WMCREATENEWDLLFORM(var msg: TMessage);
 var
-  hDll                             : HMODULE;
-  ShowDllForm                      : TShowDllForm;
-  frm                              : TFormClass;
-  strParamModuleName, strModuleName: PAnsiChar;
-  strClassName, strWindowName      : PAnsiChar;
-  strIconFileName                  : PAnsiChar;
-  ft                               : TSPFileType;
+  hDll                              : HMODULE;
+  ShowDllForm                       : TShowDllForm;
+  frm                               : TFormClass;
+  strParamModuleName, strModuleName : PAnsiChar;
+  strFormClassName, strFormTitleName: PAnsiChar;
+  strIconFileName                   : PAnsiChar;
+  ft                                : TSPFileType;
+  strFileValue                      : String;
 begin
+  { exe 文件 }
+  if CompareText(ExtractFileExt(g_strCreateDllFileName), '.exe') = 0 then
+  begin
+    strFileValue := FlstAllDll.Values[g_strCreateDllFileName];
+    PBoxRun_IMAGE_EXE(g_strCreateDllFileName, strFileValue);
+    Exit;
+  end;
+
+  { Dll 文件 }
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
   try
     ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
-    ShowDllForm(frm, ft, strParamModuleName, strModuleName, strClassName, strWindowName, strIconFileName, False);
+    ShowDllForm(frm, ft, strParamModuleName, strModuleName, strFormClassName, strFormTitleName, strIconFileName, False);
   finally
     FreeLibrary(hDll);
   end;
@@ -114,8 +170,6 @@ begin
       PBoxRun_VC_MFCDll;
     ftQTDll:
       PBoxRun_QT_GUIDll;
-    ftEXE:
-      PBoxRun_IMAGE_EXE;
   end;
 end;
 
@@ -167,10 +221,10 @@ begin
   lblInfo.Caption := TMenuItem(TMenuItem(Sender).Owner).Caption + ' - ' + TMenuItem(Sender).Caption;
 
   { 如果已经创建了，就不在重复创建了 }
-  if (g_strCreateDllFileName <> '') and (g_strCreateDllFileName = FlstAllDll.Strings[TMenuItem(Sender).Tag]) then
+  if (g_strCreateDllFileName <> '') and (g_strCreateDllFileName = FlstAllDll.Names[TMenuItem(Sender).Tag]) then
     Exit;
 
-  g_strCreateDllFileName := FlstAllDll.Strings[TMenuItem(Sender).Tag];
+  g_strCreateDllFileName := FlstAllDll.Names[TMenuItem(Sender).Tag];
 
   { 销毁上一次创建的 Dll 窗体 }
   PostMessage(Handle, WM_DESTORYPREDLLFORM, 0, 0);
@@ -211,8 +265,9 @@ var
   strClassName, strWindowName   : PAnsiChar;
   strIconFileName               : PAnsiChar;
   arrDllFile                    : TStringDynArray;
-  strDllFileName                : String;
   ft                            : TSPFileType;
+  strDllFileName                : String;
+  strInfo                       : string;
 begin
   { 扫描 Dll 文件，仅限于插件目录(plugins) }
   arrDllFile := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)) + 'plugins', '*.dll');
@@ -228,11 +283,15 @@ begin
     try
       ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
       if not Assigned(ShowDllForm) then
+      begin
+        FreeLibrary(hDll);
         Continue;
+      end;
 
       { 获取 Dll 参数 }
       ShowDllForm(frm, ft, strPModuleName, strSModuleName, strClassName, strWindowName, strIconFileName, False);
-      FlstAllDll.Add(Format('%s=%s,%s,%s,%s,%s', [strDllFileName, strPModuleName, strSModuleName, strClassName, strWindowName, strIconFileName]));
+      strInfo := strDllFileName + '=' + string(strPModuleName) + ',' + string(strSModuleName) + ',' + string(strClassName) + ',' + string(strWindowName) + ',' + string(strIconFileName);
+      FlstAllDll.Add(strInfo);
     finally
       FreeLibrary(hDll);
     end;
@@ -270,7 +329,6 @@ begin
     mmSM.Tag     := I;
     mmSM.OnClick := OnMenuItemClick;
     mmPM.Add(mmSM);
-
   end;
 end;
 
@@ -283,7 +341,7 @@ begin
   mmMain.Items.Clear;
   mmMain.AutoMerge := False;
   try
-    { 扫描 Dll 文件，添加到列表；仅限于插件目录 (plugins) }
+    { 扫描 Dll 文件，添加到列表；当前插件目录 (plugins) }
     ScanPlugins_Dll;
 
     { 扫描 EXE 文件，添加到列表；读取配置文件 }
