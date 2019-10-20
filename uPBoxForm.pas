@@ -101,11 +101,14 @@ var
   ft                                : TSPFileType;
   strFileValue                      : String;
 begin
+  if g_strCreateDllFileName = '' then
+    Exit;
+
   { exe нд╪Ч }
   if CompareText(ExtractFileExt(g_strCreateDllFileName), '.exe') = 0 then
   begin
     strFileValue := FlstAllDll.Values[g_strCreateDllFileName];
-    PBoxRun_IMAGE_EXE(g_strCreateDllFileName, strFileValue, frmPBox, rzpgcntrlAll, rztbshtDllForm);
+    PBoxRun_IMAGE_EXE(g_strCreateDllFileName, strFileValue, rzpgcntrlAll, rztbshtDllForm, lblInfo);
     Exit;
   end;
 
@@ -123,7 +126,7 @@ begin
     ftDelphiDll:
       PBoxRun_DelphiDll(FDelphiDllForm, rzpgcntrlAll, rztbshtDllForm, OnDelphiDllFormClose);
     ftVCDialogDll:
-      PBoxRun_VC_DLGDll(Handle, rzpgcntrlAll, rztbshtDllForm, lblInfo);
+      PBoxRun_VC_DLGDll(frmPBox, rzpgcntrlAll, rztbshtDllForm, lblInfo);
     ftVCMFCDll:
       PBoxRun_VC_MFCDll;
     ftQTDll:
