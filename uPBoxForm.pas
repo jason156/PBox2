@@ -95,7 +95,6 @@ begin
 
   while True do
   begin
-    Application.ProcessMessages;
     hEXEFormHandle := FindWindow(PChar(g_strEXEFormClassName), PChar(g_strEXEFormTitleName));
     if hEXEFormHandle <> 0 then
       Break;
@@ -122,6 +121,16 @@ begin
 
   { 创建 EXE 进程，并隐藏窗体 }
   ShellExecute(Handle, 'Open', PChar(strEXEFileName), nil, nil, SW_HIDE);
+end;
+
+procedure TfrmPBox.OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if FDelphiDllForm <> nil then
+  begin
+    FDelphiDllForm         := nil;
+    g_strCreateDllFileName := '';
+    lblInfo.Caption        := '';
+  end;
 end;
 
 procedure TfrmPBox.WMCREATENEWDLLFORM(var msg: TMessage);
@@ -169,16 +178,6 @@ end;
 procedure TfrmPBox.CreateDllForm;
 begin
   PostMessage(Handle, WM_CREATENEWDLLFORM, 0, 0);
-end;
-
-procedure TfrmPBox.OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  if FDelphiDllForm <> nil then
-  begin
-    FDelphiDllForm         := nil;
-    g_strCreateDllFileName := '';
-    lblInfo.Caption        := '';
-  end;
 end;
 
 { 销毁上一次创建的 Dll 窗体 }
