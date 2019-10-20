@@ -2,6 +2,4 @@ Win64
 Win32
 /PBox.identcache
 /PBox.dproj.local
-/bin/Win64/PBox.exe
-/bin/Win32/PBox.exe
 *.dcu

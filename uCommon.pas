@@ -58,6 +58,7 @@ var
   g_intVCDialogDllFormHandle: THandle = 0;
   g_strCreateDllFileName    : string  = '';
   g_bExitProgram            : Boolean = False;
+  g_hEXEProcessID           : DWORD   = 0;
 
 implementation
 

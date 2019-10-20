@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin,
-  uCommon, uBaseForm, HookUtils, uCreateDelphiDll, uCreateVCDialogDll;
+  uCommon, uBaseForm, HookUtils, uCreateDelphiDll, uCreateVCDialogDll, uCreateEXE;
 
 type
   TfrmPBox = class(TUIBaseForm)
@@ -54,10 +54,9 @@ type
     procedure OnMenuItemClick(Sender: TObject);
     { 创建新的 Dll 窗体 }
     procedure CreateDllForm;
-
+    { 待实现 }
     function PBoxRun_VC_MFCDll: Boolean;
     function PBoxRun_QT_GUIDll: Boolean;
-    procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String);
     procedure OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
   protected
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
@@ -71,12 +70,6 @@ implementation
 
 {$R *.dfm}
 
-var
-  g_strEXEFormClassName  : string  = '';
-  g_strEXEFormTitleName  : string  = '';
-  g_OldEXEWndProc        : Pointer = nil;
-  g_OldEXE_CreateProcessW: function(lpApplicationName: LPCWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCWSTR; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall;
-
 function TfrmPBox.PBoxRun_VC_MFCDll: Boolean;
 begin
   Result := True;
@@ -85,42 +78,6 @@ end;
 function TfrmPBox.PBoxRun_QT_GUIDll: Boolean;
 begin
   Result := True;
-end;
-
-function _EXE_CreateProcessW(lpApplicationName: LPCWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCWSTR; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall;
-var
-  hEXEFormHandle: THandle;
-begin
-  Result := g_OldEXE_CreateProcessW(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
-
-  while True do
-  begin
-    hEXEFormHandle := FindWindow(PChar(g_strEXEFormClassName), PChar(g_strEXEFormTitleName));
-    if hEXEFormHandle <> 0 then
-      Break;
-  end;
-
-  SetWindowPos(hEXEFormHandle, frmPBox.rztbshtDllForm.Handle, 0, 0, frmPBox.rztbshtDllForm.Width, frmPBox.rztbshtDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
-  Winapi.Windows.SetParent(hEXEFormHandle, frmPBox.rztbshtDllForm.Handle);                                                                                        // 设置父窗体为 TabSheet
-  // SetWindowLong(hEXEFormHandle, GWL_STYLE, $96000000);
-  // SetWindowLong(hEXEFormHandle, GWL_EXSTYLE, $00010101);
-  SetWindowLong(hEXEFormHandle, GWL_STYLE, $96C80000);
-  SetWindowLong(hEXEFormHandle, GWL_EXSTYLE, $00010000);
-  ShowWindow(hEXEFormHandle, SW_SHOWNORMAL);
-  frmPBox.Height := frmPBox.Height + 1;
-  frmPBox.Height := frmPBox.Height - 1;
-end;
-
-procedure TfrmPBox.PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String);
-begin
-  g_strEXEFormClassName := strFileValue.Split([','])[2];
-  g_strEXEFormTitleName := strFileValue.Split([','])[3];
-
-  if @g_OldEXE_CreateProcessW = nil then
-    @g_OldEXE_CreateProcessW := HookProcInModule(kernel32, 'CreateProcessW', @_EXE_CreateProcessW);
-
-  { 创建 EXE 进程，并隐藏窗体 }
-  ShellExecute(Handle, 'Open', PChar(strEXEFileName), nil, nil, SW_HIDE);
 end;
 
 procedure TfrmPBox.OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
@@ -148,7 +105,7 @@ begin
   if CompareText(ExtractFileExt(g_strCreateDllFileName), '.exe') = 0 then
   begin
     strFileValue := FlstAllDll.Values[g_strCreateDllFileName];
-    PBoxRun_IMAGE_EXE(g_strCreateDllFileName, strFileValue);
+    PBoxRun_IMAGE_EXE(g_strCreateDllFileName, strFileValue, frmPBox, rzpgcntrlAll, rztbshtDllForm);
     Exit;
   end;
 
@@ -161,7 +118,7 @@ begin
     FreeLibrary(hDll);
   end;
 
-  { 根据 DLL/EXE 文件类型的不同，创建 DLL/EXE 窗体 }
+  { 根据 DLL 文件类型的不同，创建 DLL 窗体 }
   case ft of
     ftDelphiDll:
       PBoxRun_DelphiDll(FDelphiDllForm, rzpgcntrlAll, rztbshtDllForm, OnDelphiDllFormClose);
@@ -183,8 +140,18 @@ end;
 { 销毁上一次创建的 Dll 窗体 }
 procedure TfrmPBox.WMDESTORYPREDLLFORM(var msg: TMessage);
 var
-  hDll: HMODULE;
+  hDll    : HMODULE;
+  hProcess: Cardinal;
 begin
+  if g_hEXEProcessID <> 0 then
+  begin
+    hProcess := OpenProcess(PROCESS_TERMINATE, False, g_hEXEProcessID);
+    TerminateProcess(hProcess, 0);
+    g_hEXEProcessID := 0;
+    CreateDllForm;
+    Exit;
+  end;
+
   if FDelphiDllForm <> nil then
   begin
     hDll := FDelphiDllForm.Tag;
@@ -351,9 +318,9 @@ end;
 
 procedure TfrmPBox.tmrDateTimeTimer(Sender: TObject);
 const
-  WeekDay: array [1 .. 7] of String = ('星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日');
+  WeekDay: array [1 .. 7] of String = ('星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六');
 begin
-  lblTime.Caption := FormatDateTime('YYYY-MM-DD hh:mm:ss', Now) + ' ' + WeekDay[DayOfWeek(Now) - 1];
+  lblTime.Caption := FormatDateTime('YYYY-MM-DD hh:mm:ss', Now) + ' ' + WeekDay[DayOfWeek(Now)];
 end;
 
 procedure TfrmPBox.ShowPageTabView(const bShow: Boolean);

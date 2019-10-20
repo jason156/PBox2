@@ -9,7 +9,8 @@ uses
   uPBoxForm in 'uPBoxForm.pas' {frmPBox},
   uCommon in 'uCommon.pas',
   uCreateVCDialogDll in 'uCreateVCDialogDll.pas',
-  uCreateDelphiDll in 'uCreateDelphiDll.pas';
+  uCreateDelphiDll in 'uCreateDelphiDll.pas',
+  uCreateEXE in 'uCreateEXE.pas';
 
 {$R *.res}
 

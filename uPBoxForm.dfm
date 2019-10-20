@@ -37,7 +37,7 @@ object frmPBox: TfrmPBox
     ShowCaption = False
     TabOrder = 0
     object pnlInfo: TPanel
-      Left = 431
+      Left = 439
       Top = 0
       Width = 213
       Height = 25
@@ -52,6 +52,7 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 0
+      ExplicitLeft = 431
       object lblInfo: TLabel
         Left = 4
         Top = 4
@@ -74,9 +75,9 @@ object frmPBox: TfrmPBox
       end
     end
     object pnlTime: TPanel
-      Left = 772
+      Left = 780
       Top = 0
-      Width = 232
+      Width = 224
       Height = 25
       Align = alRight
       BevelOuter = bvNone
@@ -103,7 +104,7 @@ object frmPBox: TfrmPBox
       end
     end
     object pnlIP: TPanel
-      Left = 644
+      Left = 652
       Top = 0
       Width = 128
       Height = 25
@@ -118,6 +119,7 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 2
+      ExplicitLeft = 644
       object lblIP: TLabel
         Left = 4
         Top = 4
@@ -140,7 +142,7 @@ object frmPBox: TfrmPBox
       end
     end
     object pnlDownUp: TPanel
-      Left = 218
+      Left = 226
       Top = 0
       Width = 213
       Height = 25
@@ -155,6 +157,7 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 3
+      ExplicitLeft = 218
       object lblDownUp: TLabel
         Left = 4
         Top = 4
@@ -217,17 +220,9 @@ object frmPBox: TfrmPBox
     TabOrder = 2
     object rztbshtCenter: TTabSheet
       Caption = 'rztbshtCenter'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object rztbshtConfig: TTabSheet
       Caption = 'rztbshtConfig'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
     end
     object rztbshtDllForm: TTabSheet
       Caption = 'rztbshtDllForm'

@@ -161,6 +161,7 @@
         <DCCReference Include="uCommon.pas"/>
         <DCCReference Include="uCreateVCDialogDll.pas"/>
         <DCCReference Include="uCreateDelphiDll.pas"/>
+        <DCCReference Include="uCreateEXE.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
