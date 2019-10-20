@@ -76,7 +76,6 @@ var
   g_strEXEFormTitleName  : string  = '';
   g_OldEXEWndProc        : Pointer = nil;
   g_OldEXE_CreateProcessW: function(lpApplicationName: LPCWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCWSTR; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall;
-  FhWnd                  : THandle;
 
 function TfrmPBox.PBoxRun_VC_MFCDll: Boolean;
 begin
@@ -89,23 +88,26 @@ begin
 end;
 
 function _EXE_CreateProcessW(lpApplicationName: LPCWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCWSTR; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall;
+var
+  hEXEFormHandle: THandle;
 begin
   Result := g_OldEXE_CreateProcessW(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
 
   while True do
   begin
-    FhWnd := FindWindow(PChar(g_strEXEFormClassName), PChar(g_strEXEFormTitleName));
-    if FhWnd <> 0 then
+    Application.ProcessMessages;
+    hEXEFormHandle := FindWindow(PChar(g_strEXEFormClassName), PChar(g_strEXEFormTitleName));
+    if hEXEFormHandle <> 0 then
       Break;
   end;
 
-  SetWindowPos(FhWnd, frmPBox.rztbshtDllForm.Handle, 0, 0, frmPBox.rztbshtDllForm.Width, frmPBox.rztbshtDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
-  Winapi.Windows.SetParent(FhWnd, frmPBox.rztbshtDllForm.Handle);                                                                                        // 设置父窗体为 TabSheet
-  // SetWindowLong(FhWnd, GWL_STYLE, $96000000);
-  // SetWindowLong(FhWnd, GWL_EXSTYLE, $00010101);
-  SetWindowLong(FhWnd, GWL_STYLE, $96C80000);
-  SetWindowLong(FhWnd, GWL_EXSTYLE, $00010000);
-  ShowWindow(FhWnd, SW_SHOWNORMAL);
+  SetWindowPos(hEXEFormHandle, frmPBox.rztbshtDllForm.Handle, 0, 0, frmPBox.rztbshtDllForm.Width, frmPBox.rztbshtDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
+  Winapi.Windows.SetParent(hEXEFormHandle, frmPBox.rztbshtDllForm.Handle);                                                                                        // 设置父窗体为 TabSheet
+  // SetWindowLong(hEXEFormHandle, GWL_STYLE, $96000000);
+  // SetWindowLong(hEXEFormHandle, GWL_EXSTYLE, $00010101);
+  SetWindowLong(hEXEFormHandle, GWL_STYLE, $96C80000);
+  SetWindowLong(hEXEFormHandle, GWL_EXSTYLE, $00010000);
+  ShowWindow(hEXEFormHandle, SW_SHOWNORMAL);
   frmPBox.Height := frmPBox.Height + 1;
   frmPBox.Height := frmPBox.Height - 1;
 end;
@@ -115,18 +117,8 @@ begin
   g_strEXEFormClassName := strFileValue.Split([','])[2];
   g_strEXEFormTitleName := strFileValue.Split([','])[3];
 
-  if TOSVersion.Major = 7 then
-  begin
-    { 如果是 WINDOWS7 系统 }
-    if @g_OldEXE_CreateProcessW = nil then
-      @g_OldEXE_CreateProcessW := HookProcInModule(kernel32, 'CreateProcessW', @_EXE_CreateProcessW);
-  end;
-
-  if TOSVersion.Major = 7 then
-  begin
-    { 如果是 WINDOWS10 系统 }
-
-  end;
+  if @g_OldEXE_CreateProcessW = nil then
+    @g_OldEXE_CreateProcessW := HookProcInModule(kernel32, 'CreateProcessW', @_EXE_CreateProcessW);
 
   { 创建 EXE 进程，并隐藏窗体 }
   ShellExecute(Handle, 'Open', PChar(strEXEFileName), nil, nil, SW_HIDE);
