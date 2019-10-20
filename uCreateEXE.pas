@@ -17,34 +17,37 @@ var
   g_PageControl          : TPageControl;
   g_Tabsheet             : TTabSheet;
 
-function _EXE_CreateProcessW(lpApplicationName: LPCWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCWSTR; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall;
+procedure SearchExeForm(hwnd: hwnd; uMsg, idEvent: UINT; dwTime: DWORD); stdcall;
 var
   hEXEFormHandle: THandle;
+begin
+  hEXEFormHandle := FindWindow(PChar(g_strEXEFormClassName), PChar(g_strEXEFormTitleName));
+  if hEXEFormHandle <> 0 then
+  begin
+    SetWindowPos(hEXEFormHandle, g_Tabsheet.Handle, 0, 0, g_Tabsheet.Width, g_Tabsheet.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
+    Winapi.Windows.SetParent(hEXEFormHandle, g_Tabsheet.Handle);                                                                // 设置父窗体为 TabSheet
+    RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
+    RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
+    RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
+    RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
+    RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
+    RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
+    SetWindowLong(hEXEFormHandle, GWL_STYLE, $96C80000);                                                                        // $96000000
+    SetWindowLong(hEXEFormHandle, GWL_EXSTYLE, $00010000);                                                                      // $00010101
+    ShowWindow(hEXEFormHandle, SW_SHOWNORMAL);
+    g_frmMain.Height         := g_frmMain.Height + 1;
+    g_frmMain.Height         := g_frmMain.Height - 1;
+    g_PageControl.ActivePage := g_Tabsheet;
+    KillTimer(g_frmMain.Handle, $1000);
+  end;
+end;
+
+function _EXE_CreateProcessW(lpApplicationName: LPCWSTR; lpCommandLine: LPWSTR; lpProcessAttributes, lpThreadAttributes: PSecurityAttributes; bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer; lpCurrentDirectory: LPCWSTR; const lpStartupInfo: TStartupInfoW; var lpProcessInformation: TProcessInformation): BOOL; stdcall;
 begin
   Result          := g_OldEXE_CreateProcessW(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes, bInheritHandles, dwCreationFlags, lpEnvironment, lpCurrentDirectory, lpStartupInfo, lpProcessInformation);
   g_hEXEProcessID := lpProcessInformation.dwProcessId;
 
-  while True do
-  begin
-    hEXEFormHandle := FindWindow(PChar(g_strEXEFormClassName), PChar(g_strEXEFormTitleName));
-    if hEXEFormHandle <> 0 then
-      Break;
-  end;
-
-  SetWindowPos(hEXEFormHandle, g_Tabsheet.Handle, 0, 0, g_Tabsheet.Width, g_Tabsheet.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
-  Winapi.Windows.SetParent(hEXEFormHandle, g_Tabsheet.Handle);                                                                // 设置父窗体为 TabSheet
-  RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
-  RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
-  RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
-  RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
-  RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
-  RemoveMenu(GetSystemMenu(hEXEFormHandle, False), 0, MF_BYPOSITION);                                                         // 删除移动菜单
-  SetWindowLong(hEXEFormHandle, GWL_STYLE, $96C80000);                                                                        // $96000000
-  SetWindowLong(hEXEFormHandle, GWL_EXSTYLE, $00010000);                                                                      // $00010101
-  ShowWindow(hEXEFormHandle, SW_SHOWNORMAL);
-  g_frmMain.Height         := g_frmMain.Height + 1;
-  g_frmMain.Height         := g_frmMain.Height - 1;
-  g_PageControl.ActivePage := g_Tabsheet;
+  SetTimer(g_frmMain.Handle, $1000, 100, @SearchExeForm);
 end;
 
 procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String; frmMain: TForm; pg: TPageControl; ts: TTabSheet);
