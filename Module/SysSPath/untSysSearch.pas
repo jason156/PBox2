@@ -123,7 +123,7 @@ begin
     strTitle := ReadString('UI', 'Title', '程序员工具箱 v2.0');
     Free;
   end;
-  Result := FindWindow('TfrmMain', PChar(strTitle));
+  Result := FindWindow('TfrmPBox', PChar(strTitle));
 end;
 
 function GetInstanceFromhWnd(const hWnd: Cardinal): TWinControl;
