@@ -317,6 +317,7 @@ object frmConfig: TfrmConfig
       Height = 25
       Caption = #19978#31227#8593
       TabOrder = 2
+      OnClick = btnParentUpClick
     end
     object btnParentDown: TButton
       Left = 174
@@ -325,6 +326,7 @@ object frmConfig: TfrmConfig
       Height = 25
       Caption = #19979#31227#8595
       TabOrder = 3
+      OnClick = btnParentDownClick
     end
     object btnSubUp: TButton
       Left = 409
@@ -333,6 +335,7 @@ object frmConfig: TfrmConfig
       Height = 25
       Caption = #19978#31227#8593
       TabOrder = 4
+      OnClick = btnSubUpClick
     end
     object btnSubDown: TButton
       Left = 409
@@ -341,6 +344,7 @@ object frmConfig: TfrmConfig
       Height = 25
       Caption = #19979#31227#8595
       TabOrder = 5
+      OnClick = btnSubDownClick
     end
     object btnSubModuleIcon: TButton
       Left = 409

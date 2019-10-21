@@ -50,6 +50,10 @@ type
     procedure srchbxBackImageInvokeSearch(Sender: TObject);
     procedure chkBackImageClick(Sender: TObject);
     procedure lstParentModuleClick(Sender: TObject);
+    procedure btnParentUpClick(Sender: TObject);
+    procedure btnParentDownClick(Sender: TObject);
+    procedure btnSubUpClick(Sender: TObject);
+    procedure btnSubDownClick(Sender: TObject);
   private
     { Private declarations }
     FmemIni      : TMemIniFile;
@@ -87,6 +91,42 @@ end;
 procedure TfrmConfig.btnDatabaseConfigClick(Sender: TObject);
 begin
   ShowDBConfigForm(FmemIni);
+end;
+
+{ 模块上移 }
+procedure TfrmConfig.btnParentUpClick(Sender: TObject);
+var
+  intSelectedIndex: Integer;
+  intPirorIndex   : Integer;
+  strBackup       : String;
+begin
+  intSelectedIndex := lstParentModule.ItemIndex;
+  intPirorIndex    := intSelectedIndex - 1;
+  if intPirorIndex >= 0 then
+  begin
+    strBackup                                       := lstParentModule.Items.Strings[intPirorIndex];
+    lstParentModule.Items.Strings[intPirorIndex]    := lstParentModule.Items.Strings[intSelectedIndex];
+    lstParentModule.Items.Strings[intSelectedIndex] := strBackup;
+    lstParentModule.Selected[intPirorIndex]         := True;
+  end;
+end;
+
+{ 模块下移 }
+procedure TfrmConfig.btnParentDownClick(Sender: TObject);
+var
+  intSelectedIndex: Integer;
+  intNextIndex    : Integer;
+  strBackup       : String;
+begin
+  intSelectedIndex := lstParentModule.ItemIndex;
+  intNextIndex     := intSelectedIndex + 1;
+  if intNextIndex < lstParentModule.Count then
+  begin
+    strBackup                                       := lstParentModule.Items.Strings[intNextIndex];
+    lstParentModule.Items.Strings[intNextIndex]     := lstParentModule.Items.Strings[intSelectedIndex];
+    lstParentModule.Items.Strings[intSelectedIndex] := strBackup;
+    lstParentModule.Selected[intNextIndex]          := True;
+  end;
 end;
 
 procedure TfrmConfig.btnCancelClick(Sender: TObject);
@@ -138,6 +178,9 @@ begin
     FmemIni.WriteString(c_strIniUISection, 'imgBack', '');
 
   EnableAutoRun(chkAutorun.Checked);
+
+  lstParentModule.Items.Delimiter := ';';
+  FmemIni.WriteString(c_strIniModuleSection, 'Order', lstParentModule.Items.DelimitedText);
 end;
 
 procedure TfrmConfig.ReadConfigFillUI;
@@ -188,7 +231,52 @@ begin
   FbResult := True;
   SaveConfig;
   FmemIni.UpdateFile;
+
+  { 排序模块 }
+  SortModuleList(FlstModuleAll);
   Close;
+end;
+
+{ 子模块上移 }
+procedure TfrmConfig.btnSubUpClick(Sender: TObject);
+var
+  intSelectedIndex: Integer;
+  intPirorIndex   : Integer;
+  strBackup       : String;
+begin
+  intSelectedIndex := lstSubModule.ItemIndex;
+  intPirorIndex    := intSelectedIndex - 1;
+  if intPirorIndex >= 0 then
+  begin
+    strBackup                                    := lstSubModule.Items.Strings[intPirorIndex];
+    lstSubModule.Items.Strings[intPirorIndex]    := lstSubModule.Items.Strings[intSelectedIndex];
+    lstSubModule.Items.Strings[intSelectedIndex] := strBackup;
+    lstSubModule.Selected[intPirorIndex]         := True;
+
+    lstSubModule.Items.Delimiter := ';';
+    FmemIni.WriteString(c_strIniModuleSection, lstParentModule.Items.Strings[lstParentModule.ItemIndex], lstSubModule.Items.DelimitedText);
+  end;
+end;
+
+{ 子模块下移 }
+procedure TfrmConfig.btnSubDownClick(Sender: TObject);
+var
+  intSelectedIndex: Integer;
+  intNextIndex    : Integer;
+  strBackup       : String;
+begin
+  intSelectedIndex := lstSubModule.ItemIndex;
+  intNextIndex     := intSelectedIndex + 1;
+  if intNextIndex < lstSubModule.Count then
+  begin
+    strBackup                                    := lstSubModule.Items.Strings[intNextIndex];
+    lstSubModule.Items.Strings[intNextIndex]     := lstSubModule.Items.Strings[intSelectedIndex];
+    lstSubModule.Items.Strings[intSelectedIndex] := strBackup;
+    lstSubModule.Selected[intNextIndex]          := True;
+
+    lstSubModule.Items.Delimiter := ';';
+    FmemIni.WriteString(c_strIniModuleSection, lstParentModule.Items.Strings[lstParentModule.ItemIndex], lstSubModule.Items.DelimitedText);
+  end;
 end;
 
 procedure TfrmConfig.chkBackImageClick(Sender: TObject);
