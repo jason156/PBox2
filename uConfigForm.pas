@@ -173,9 +173,9 @@ begin
   FmemIni.WriteBool(c_strIniFormStyleSection, 'ShowCloseButton', chkShowCloseButton.Checked);
 
   if chkBackImage.Checked then
-    FmemIni.WriteString(c_strIniUISection, 'imgBack', srchbxBackImage.Text)
+    FmemIni.WriteString(c_strIniUISection, 'filebackimage', srchbxBackImage.Text)
   else
-    FmemIni.WriteString(c_strIniUISection, 'imgBack', '');
+    FmemIni.WriteString(c_strIniUISection, 'filebackimage', '');
 
   EnableAutoRun(chkAutorun.Checked);
 
@@ -197,7 +197,7 @@ begin
   chkOnlyOneInstance.Checked := FmemIni.ReadBool(c_strIniUISection, 'OnlyOneInstance', True);
   chkBackImage.Checked       := FmemIni.ReadBool(c_strIniUISection, 'ShowBackImage', False);
   if chkBackImage.Checked then
-    srchbxBackImage.Text := FmemIni.ReadString(c_strIniUISection, 'imgBack', '');
+    srchbxBackImage.Text := FmemIni.ReadString(c_strIniUISection, 'filebackimage', '');
 
   rgShowStyle.ItemIndex      := FmemIni.ReadInteger(c_strIniFormStyleSection, 'index', 0);
   chkShowCloseButton.Checked := FmemIni.ReadBool(c_strIniFormStyleSection, 'ShowCloseButton', True);
@@ -284,7 +284,7 @@ begin
   if chkBackImage.Checked then
   begin
     srchbxBackImage.Visible := True;
-    srchbxBackImage.Text    := FmemIni.ReadString(c_strIniUISection, 'imgBack', '');
+    srchbxBackImage.Text    := FmemIni.ReadString(c_strIniUISection, 'filebackimage', '');
   end
   else
   begin
