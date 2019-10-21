@@ -211,18 +211,54 @@ object frmPBox: TfrmPBox
     Top = 100
     Width = 1002
     Height = 523
-    ActivePage = tsButton
+    ActivePage = tsDll
     Align = alCustom
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     object tsButton: TTabSheet
       Caption = 'tsButton'
+      object imgButtonBack: TImage
+        Left = 0
+        Top = 0
+        Width = 994
+        Height = 495
+        Align = alClient
+        Stretch = True
+        ExplicitLeft = 272
+        ExplicitTop = 128
+        ExplicitWidth = 105
+        ExplicitHeight = 105
+      end
     end
     object tsList: TTabSheet
       Caption = 'tsList'
+      object imgListBack: TImage
+        Left = 0
+        Top = 0
+        Width = 994
+        Height = 495
+        Align = alClient
+        Stretch = True
+        ExplicitLeft = 272
+        ExplicitTop = 128
+        ExplicitWidth = 105
+        ExplicitHeight = 105
+      end
     end
     object tsDll: TTabSheet
       Caption = 'tsDll'
+      object imgDllFormBack: TImage
+        Left = 0
+        Top = 0
+        Width = 994
+        Height = 495
+        Align = alClient
+        Stretch = True
+        ExplicitLeft = 272
+        ExplicitTop = 128
+        ExplicitWidth = 105
+        ExplicitHeight = 105
+      end
     end
   end
   object ilMain: TImageList
@@ -378,5 +414,21 @@ object frmPBox: TfrmPBox
     OnTimer = tmrDateTimeTimer
     Left = 112
     Top = 332
+  end
+  object pmTray: TPopupMenu
+    AutoHotkeys = maManual
+    Left = 264
+    Top = 80
+    object mniTrayShowForm: TMenuItem
+      Caption = #26174#31034
+      OnClick = mniTrayShowFormClick
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object mniTrayExit: TMenuItem
+      Caption = #36864#20986
+      OnClick = mniTrayExitClick
+    end
   end
 end

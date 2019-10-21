@@ -3,8 +3,8 @@ unit uPBoxForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin, System.Math,
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles, System.Math,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin, Vcl.Imaging.jpeg, Vcl.Imaging.pngimage,
   uCommon, uBaseForm, HookUtils, uCreateDelphiDll, uCreateVCDialogDll, uCreateEXE;
 
 type
@@ -30,12 +30,21 @@ type
     pnlDownUp: TPanel;
     lblDownUp: TLabel;
     bvlDownUP: TBevel;
+    pmTray: TPopupMenu;
+    mniTrayShowForm: TMenuItem;
+    N2: TMenuItem;
+    mniTrayExit: TMenuItem;
+    imgDllFormBack: TImage;
+    imgButtonBack: TImage;
+    imgListBack: TImage;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure tmrDateTimeTimer(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure mniTrayExitClick(Sender: TObject);
+    procedure mniTrayShowFormClick(Sender: TObject);
   private
     FlstAllDll    : THashedStringList;
     FUIShowStyle  : TShowStyle;
@@ -377,6 +386,9 @@ begin
 end;
 
 procedure TfrmPBox.ReadConfigUI;
+var
+  bShowImage  : Boolean;
+  strImageBack: String;
 begin
   with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
   begin
@@ -384,6 +396,21 @@ begin
     MulScreenPos := ReadBool(c_strIniUISection, 'MulScreen', False);
     FbMaxForm    := ReadBool(c_strIniUISection, 'MAXSIZE', False);
     FormStyle    := TFormStyle(Integer(ReadBool(c_strIniUISection, 'OnTop', False)) * 3);
+    CloseToTray  := ReadBool(c_strIniUISection, 'CloseMini', False);
+    bShowImage   := ReadBool(c_strIniUISection, 'showbackimage', False);
+    strImageBack := ReadString(c_strIniUISection, 'filebackimage', '');
+    if (bShowImage) and (Trim(strImageBack) <> '') and (FileExists(strImageBack)) then
+    begin
+      imgDllFormBack.Picture.LoadFromFile(strImageBack);
+      imgButtonBack.Picture.LoadFromFile(strImageBack);
+      imgListBack.Picture.LoadFromFile(strImageBack);
+    end
+    else
+    begin
+      imgDllFormBack.Picture.Assign(nil);
+      imgButtonBack.Picture.Assign(nil);
+      imgListBack.Picture.Assign(nil);
+    end;
     Free;
   end;
 end;
@@ -399,6 +426,7 @@ begin
   g_strCreateDllFileName := '';
   FDelphiDllForm         := nil;
   OnConfig               := OnSysConfig;
+  TrayIconPMenu          := pmTray;
 
   { 初始化界面 }
   ShowPageTabView(False);
@@ -454,6 +482,17 @@ procedure TfrmPBox.FormResize(Sender: TObject);
 begin
   { 更改 Dll 窗体大小 }
   EnumChildWindows(Handle, @EnumChildFunc, tsDll.Handle);
+end;
+
+procedure TfrmPBox.mniTrayShowFormClick(Sender: TObject);
+begin
+  MainTrayIcon.OnDblClick(nil);
+end;
+
+procedure TfrmPBox.mniTrayExitClick(Sender: TObject);
+begin
+  CloseToTray := False;
+  Close;
 end;
 
 end.
