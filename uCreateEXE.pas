@@ -12,13 +12,15 @@ procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String; pg: TPag
 implementation
 
 var
-  g_strEXEFormClassName: string = '';
-  g_strEXEFormTitleName: string = '';
-  g_PageControl        : TPageControl;
-  g_Tabsheet           : TTabSheet;
-  g_lblInfo            : TLabel;
+  g_strFileValue              : string;
+  g_strEXEFormClassName       : string = '';
+  g_strEXEFormTitleName       : string = '';
+  g_PageControl               : TPageControl;
+  g_Tabsheet                  : TTabSheet;
+  g_lblInfo                   : TLabel;
+  g_strCreateDllFileNameBackUp: String;
 
-{ 进程是否关闭 }
+  { 进程是否关闭 }
 function CheckProcessExist(const intPID: DWORD): Boolean;
 var
   hSnap: THandle;
@@ -46,9 +48,17 @@ procedure EndExeForm(hWnd: hWnd; uMsg, idEvent: UINT; dwTime: DWORD); stdcall;
 begin
   if not CheckProcessExist(g_hEXEProcessID) then
   begin
-    g_lblInfo.Caption      := '';
-    g_hEXEProcessID        := 0;
-    g_strCreateDllFileName := '';
+    if g_strCreateDllFileNameBackUp <> g_strCreateDllFileName then
+    begin
+      g_hEXEProcessID := 0;
+    end
+    else
+    begin
+      g_lblInfo.Caption            := '';
+      g_hEXEProcessID              := 0;
+      g_strCreateDllFileName       := '';
+      g_strCreateDllFileNameBackUp := '';
+    end;
     KillTimer(Application.MainForm.Handle, $2000);
   end;
 end;
@@ -76,6 +86,7 @@ begin
     Application.MainForm.Height := Application.MainForm.Height + 1;
     Application.MainForm.Height := Application.MainForm.Height - 1;
     g_PageControl.ActivePage    := g_Tabsheet;
+    g_lblInfo.Caption           := g_strFileValue.Split([';'])[0] + ' - ' + g_strFileValue.Split([';'])[1];
     KillTimer(Application.MainForm.Handle, $1000);
     SetTimer(Application.MainForm.Handle, $2000, 100, @EndExeForm);
   end;
@@ -83,13 +94,14 @@ end;
 
 procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String; pg: TPageControl; ts: TTabSheet; lblInfo: TLabel);
 begin
-  g_PageControl := pg;
-  g_Tabsheet    := ts;
-  g_lblInfo     := lblInfo;
+  g_PageControl                := pg;
+  g_Tabsheet                   := ts;
+  g_lblInfo                    := lblInfo;
+  g_strFileValue               := strFileValue;
+  g_strCreateDllFileNameBackUp := g_strCreateDllFileName;
 
   g_strEXEFormClassName := strFileValue.Split([';'])[2];
   g_strEXEFormTitleName := strFileValue.Split([';'])[3];
-
   SetTimer(Application.MainForm.Handle, $1000, 100, @FindExeForm);
 
   { 创建 EXE 进程，并隐藏窗体 }

@@ -5,7 +5,7 @@ unit uCreateDelphiDll;
 
 interface
 
-uses Vcl.Forms, Winapi.Windows, Vcl.Graphics, Vcl.ComCtrls, Vcl.Controls, uCommon;
+uses Vcl.Forms, Winapi.Windows, Vcl.Graphics, Vcl.ComCtrls, Vcl.Controls, Vcl.StdCtrls, uCommon;
 
 procedure PBoxRun_DelphiDll(var DllForm: TForm; Page: TPageControl; tsDllForm: TTabSheet; OnDelphiDllFormClose: TCloseEvent);
 
