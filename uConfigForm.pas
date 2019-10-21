@@ -3,8 +3,8 @@ unit uConfigForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.IniFiles, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.WinXCtrls, Vcl.Buttons;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.IniFiles, System.Win.Registry,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtDlgs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.WinXCtrls, Vcl.Buttons, uCommon;
 
 type
   TfrmConfig = class(TForm)
@@ -41,16 +41,23 @@ type
     btnPModuleIcon: TButton;
     chkShowCloseButton: TCheckBox;
     chkFullScreen: TCheckBox;
+    OpenPictureDialog1: TOpenPictureDialog;
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnDatabaseConfigClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure srchbxBackImageInvokeSearch(Sender: TObject);
+    procedure chkBackImageClick(Sender: TObject);
+    procedure lstParentModuleClick(Sender: TObject);
   private
     { Private declarations }
     FmemIni      : TMemIniFile;
     FlstModuleAll: THashedStringList;
+    FbResult     : Boolean;
     procedure ReadConfigFillUI;
+    procedure SaveConfig;
+    procedure FillSubModule(lstModule: TListBox; const strModuleName: string);
   public
     { Public declarations }
   end;
@@ -65,12 +72,14 @@ uses uDBConfig;
 
 function ShowConfigForm(var lstModuleAll: THashedStringList): Boolean;
 begin
-  Result := True;
   with TfrmConfig.Create(nil) do
   begin
+    FbResult      := False;
     FlstModuleAll := lstModuleAll;
     ReadConfigFillUI;
+    Position := poScreenCenter;
     ShowModal;
+    Result := FbResult;
     Free;
   end;
 end;
@@ -85,25 +94,155 @@ begin
   Close;
 end;
 
+procedure EnableAutoRun(const bAutoRun: Boolean = False);
+begin
+  if not bAutoRun then
+  begin
+    with TRegistry.Create do
+    begin
+      RootKey := HKEY_LOCAL_MACHINE;
+      OpenKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Run', True);
+      DeleteValue('PBox');
+      Free;
+    end;
+  end
+  else
+  begin
+    with TRegistry.Create do
+    begin
+      RootKey := HKEY_LOCAL_MACHINE;
+      OpenKey('SOFTWARE\Microsoft\Windows\CurrentVersion\Run', True);
+      WriteString('PBox', ParamStr(0));
+      Free;
+    end;
+  end;
+end;
+
+procedure TfrmConfig.SaveConfig;
+begin
+  FmemIni.WriteString(c_strIniUISection, 'Title', edtTitle.Text);
+  FmemIni.WriteBool(c_strIniUISection, 'MulScreen', chkShowTwoScreen.Checked);
+  FmemIni.WriteBool(c_strIniUISection, 'OnTop', chkTopForm.Checked);
+  FmemIni.WriteBool(c_strIniUISection, 'MAXSIZE', chkFullScreen.Checked);
+  FmemIni.WriteBool(c_strIniUISection, 'CloseMini', chkCloseMini.Checked);
+  FmemIni.WriteBool(c_strIniUISection, 'AutoRun', chkAutorun.Checked);
+  FmemIni.WriteBool(c_strIniUISection, 'OnlyOneInstance', chkOnlyOneInstance.Checked);
+  FmemIni.WriteBool(c_strIniUISection, 'ShowBackImage', chkBackImage.Checked);
+
+  FmemIni.WriteInteger(c_strIniFormStyleSection, 'index', rgShowStyle.ItemIndex);
+  FmemIni.WriteBool(c_strIniFormStyleSection, 'ShowCloseButton', chkShowCloseButton.Checked);
+
+  if chkBackImage.Checked then
+    FmemIni.WriteString(c_strIniUISection, 'imgBack', srchbxBackImage.Text)
+  else
+    FmemIni.WriteString(c_strIniUISection, 'imgBack', '');
+
+  EnableAutoRun(chkAutorun.Checked);
+end;
+
+procedure TfrmConfig.ReadConfigFillUI;
+var
+  I             : Integer;
+  strPModuleName: String;
+begin
+  edtTitle.Text              := FmemIni.ReadString(c_strIniUISection, 'Title', c_strTitle);
+  chkShowTwoScreen.Checked   := FmemIni.ReadBool(c_strIniUISection, 'MulScreen', False) and (Screen.MonitorCount > 1);
+  chkTopForm.Checked         := FmemIni.ReadBool(c_strIniUISection, 'OnTop', False);
+  chkFullScreen.Checked      := FmemIni.ReadBool(c_strIniUISection, 'MAXSIZE', False);
+  chkCloseMini.Checked       := FmemIni.ReadBool(c_strIniUISection, 'CloseMini', False);
+  chkAutorun.Checked         := FmemIni.ReadBool(c_strIniUISection, 'AutoRun', False);
+  chkOnlyOneInstance.Checked := FmemIni.ReadBool(c_strIniUISection, 'OnlyOneInstance', True);
+  chkBackImage.Checked       := FmemIni.ReadBool(c_strIniUISection, 'ShowBackImage', False);
+  if chkBackImage.Checked then
+    srchbxBackImage.Text := FmemIni.ReadString(c_strIniUISection, 'imgBack', '');
+
+  rgShowStyle.ItemIndex      := FmemIni.ReadInteger(c_strIniFormStyleSection, 'index', 0);
+  chkShowCloseButton.Checked := FmemIni.ReadBool(c_strIniFormStyleSection, 'ShowCloseButton', True);
+
+  { 模块列表 }
+  for I := 0 to FlstModuleAll.Count - 1 do
+  begin
+    strPModuleName := FlstModuleAll.ValueFromIndex[I].Split([','])[0];
+    if lstParentModule.Items.IndexOf(strPModuleName) = -1 then
+      lstParentModule.Items.Add(strPModuleName);
+  end;
+end;
+
+procedure TfrmConfig.srchbxBackImageInvokeSearch(Sender: TObject);
+begin
+  with TOpenPictureDialog.Create(nil) do
+  begin
+    Filter := '背景图片(*.JPG;*.BMP;*PNG)|*.JPG;*.BMP;*PNG';
+    if Execute() then
+    begin
+      srchbxBackImage.Text := FileName;
+      FmemIni.WriteBool(c_strIniUISection, 'showbackimage', chkBackImage.Checked);
+      FmemIni.WriteString(c_strIniUISection, 'filebackimage', FileName);
+    end;
+    Free;
+  end;
+end;
+
 procedure TfrmConfig.btnSaveClick(Sender: TObject);
 begin
+  FbResult := True;
+  SaveConfig;
   FmemIni.UpdateFile;
   Close;
 end;
 
-procedure TfrmConfig.FormShow(Sender: TObject);
+procedure TfrmConfig.chkBackImageClick(Sender: TObject);
 begin
-  FmemIni := TMemIniFile.Create(ChangeFileExt(ParamStr(0), '.ini'));
+  if chkBackImage.Checked then
+  begin
+    srchbxBackImage.Visible := True;
+    srchbxBackImage.Text    := FmemIni.ReadString(c_strIniUISection, 'imgBack', '');
+  end
+  else
+  begin
+    srchbxBackImage.Visible := False;
+    srchbxBackImage.Text    := '';
+  end;
 end;
 
-procedure TfrmConfig.ReadConfigFillUI;
+procedure TfrmConfig.FormCreate(Sender: TObject);
 begin
-  //
+  FmemIni := TMemIniFile.Create(ChangeFileExt(ParamStr(0), '.ini'));
 end;
 
 procedure TfrmConfig.FormDestroy(Sender: TObject);
 begin
   FmemIni.Free;
+end;
+
+procedure TfrmConfig.FillSubModule(lstModule: TListBox; const strModuleName: string);
+var
+  strPModuleName: string;
+  strSModuleName: string;
+  I             : Integer;
+begin
+  { 模块列表 }
+  for I := 0 to FlstModuleAll.Count - 1 do
+  begin
+    strPModuleName := FlstModuleAll.ValueFromIndex[I].Split([','])[0];
+    strSModuleName := FlstModuleAll.ValueFromIndex[I].Split([','])[1];
+    if CompareText(strModuleName, strPModuleName) = 0 then
+    begin
+      lstModule.Items.Add(strSModuleName);
+    end;
+  end;
+end;
+
+procedure TfrmConfig.lstParentModuleClick(Sender: TObject);
+var
+  strPModuleName: string;
+begin
+  if lstParentModule.ItemIndex < 0 then
+    Exit;
+
+  lstSubModule.Clear;
+  strPModuleName := lstParentModule.Items.Strings[lstParentModule.ItemIndex];
+  FillSubModule(lstSubModule, strPModuleName);
 end;
 
 end.

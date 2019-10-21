@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles,
-  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin, System.Math,
   uCommon, uBaseForm, HookUtils, uCreateDelphiDll, uCreateVCDialogDll, uCreateEXE;
 
 type
@@ -40,8 +40,10 @@ type
     FlstAllDll    : THashedStringList;
     FUIShowStyle  : TShowStyle;
     FUIViewStyle  : TViewStyle;
+    FbMaxForm     : Boolean;
     FDelphiDllForm: TForm;
     procedure ShowPageTabView(const bShow: Boolean = False);
+    procedure ReadConfigUI;
     { 扫描 EXE 文件，读取配置文件 }
     procedure ScanPlugins_EXE;
     { 扫描 Dll 文件，仅限于插件目录(plugins) }
@@ -225,6 +227,25 @@ begin
   end;
 end;
 
+procedure GetDllFile(var lstDll: TStringList);
+var
+  strPlugInsPath: String;
+  sr            : TSearchRec;
+  intFind       : Integer;
+begin
+  strPlugInsPath := ExtractFilePath(ParamStr(0)) + 'plugins';
+  intFind        := FindFirst(strPlugInsPath + '\*.dll', faAnyFile, sr);
+  if not DirectoryExists(strPlugInsPath) then
+    Exit;
+
+  while intFind = 0 do
+  begin
+    if (sr.Name <> '.') and (sr.Name <> '..') and (sr.Attr <> faDirectory) then
+      lstDll.Add(strPlugInsPath + '\' + sr.Name);
+    intFind := FindNext(sr);
+  end;
+end;
+
 procedure TfrmPBox.ScanPlugins_Dll;
 var
   hDll                          : HMODULE;
@@ -233,37 +254,45 @@ var
   strPModuleName, strSModuleName: PAnsiChar;
   strClassName, strWindowName   : PAnsiChar;
   strIconFileName               : PAnsiChar;
-  arrDllFile                    : TStringDynArray;
   ft                            : TSPFileType;
   strDllFileName                : String;
   strInfo                       : string;
+  I, Count                      : Integer;
+  lstTemp                       : TStringList;
 begin
-  { 扫描 Dll 文件，仅限于插件目录(plugins) }
-  arrDllFile := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)) + 'plugins', '*.dll');
-  if Length(arrDllFile) <= 0 then
-    Exit;
+  lstTemp := TStringList.Create;
+  try
+    { 扫描 Dll 文件，仅限于插件目录(plugins) }
+    GetDllFile(lstTemp);
+    Count := lstTemp.Count;
+    if Count <= 0 then
+      Exit;
 
-  for strDllFileName in arrDllFile do
-  begin
-    hDll := LoadLibrary(PChar(strDllFileName));
-    if hDll = 0 then
-      Continue;
-
-    try
-      ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
-      if not Assigned(ShowDllForm) then
-      begin
-        FreeLibrary(hDll);
+    for I := 0 to Count - 1 do
+    begin
+      strDllFileName := lstTemp.Strings[I];
+      hDll           := LoadLibrary(PChar(strDllFileName));
+      if hDll = 0 then
         Continue;
-      end;
 
-      { 获取 Dll 参数 }
-      ShowDllForm(frm, ft, strPModuleName, strSModuleName, strClassName, strWindowName, strIconFileName, False);
-      strInfo := strDllFileName + '=' + string(strPModuleName) + ',' + string(strSModuleName) + ',' + string(strClassName) + ',' + string(strWindowName) + ',' + string(strIconFileName);
-      FlstAllDll.Add(strInfo);
-    finally
-      FreeLibrary(hDll);
+      try
+        ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
+        if not Assigned(ShowDllForm) then
+        begin
+          FreeLibrary(hDll);
+          Continue;
+        end;
+
+        { 获取 Dll 参数 }
+        ShowDllForm(frm, ft, strPModuleName, strSModuleName, strClassName, strWindowName, strIconFileName, False);
+        strInfo := strDllFileName + '=' + string(strPModuleName) + ',' + string(strSModuleName) + ',' + string(strClassName) + ',' + string(strWindowName) + ',' + string(strIconFileName);
+        FlstAllDll.Add(strInfo);
+      finally
+        FreeLibrary(hDll);
+      end;
     end;
+  finally
+    lstTemp.Free;
   end;
 end;
 
@@ -347,27 +376,22 @@ begin
   end;
 end;
 
-procedure TfrmPBox.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TfrmPBox.ReadConfigUI;
 begin
-  g_bExitProgram := True;
-  FreeVCDialogDllForm;
+  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+  begin
+    Caption      := ReadString(c_strIniUISection, 'Title', c_strTitle);
+    MulScreenPos := ReadBool(c_strIniUISection, 'MulScreen', False);
+    FbMaxForm    := ReadBool(c_strIniUISection, 'MAXSIZE', False);
+    FormStyle    := TFormStyle(Integer(ReadBool(c_strIniUISection, 'OnTop', False)) * 3);
+    Free;
+  end;
 end;
 
 procedure TfrmPBox.FormCreate(Sender: TObject);
 var
   strDllModulePath: string;
 begin
-  { 初始化界面 }
-  ShowPageTabView(False);
-  rzpgcntrlAll.ActivePage := tsDll;
-
-  { 显示 时间 }
-  tmrDateTime.OnTimer(nil);
-
-  { 显示 IP }
-  lblIP.Caption := GetNativeIP;
-  lblIP.Left    := (lblIP.Parent.Width - lblIP.Width) div 2;
-
   { 初始化参数 }
   FUIShowStyle           := ssMenu;
   FUIViewStyle           := vsSingle;
@@ -375,6 +399,18 @@ begin
   g_strCreateDllFileName := '';
   FDelphiDllForm         := nil;
   OnConfig               := OnSysConfig;
+
+  { 初始化界面 }
+  ShowPageTabView(False);
+  rzpgcntrlAll.ActivePage := tsDll;
+  ReadConfigUI;
+
+  { 显示 时间 }
+  tmrDateTime.OnTimer(nil);
+
+  { 显示 IP }
+  lblIP.Caption := GetNativeIP;
+  lblIP.Left    := (lblIP.Parent.Width - lblIP.Width) div 2;
 
   { 扫描插件目录 }
   strDllModulePath := ExtractFilePath(ParamStr(0)) + 'plugins';
@@ -385,7 +421,14 @@ end;
 procedure TfrmPBox.FormActivate(Sender: TObject);
 begin
   { 最大化窗体 }
-  pnlDBLClick(nil);
+  if FbMaxForm then
+    pnlDBLClick(nil);
+end;
+
+procedure TfrmPBox.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  g_bExitProgram := True;
+  FreeVCDialogDllForm;
 end;
 
 procedure TfrmPBox.FormDestroy(Sender: TObject);

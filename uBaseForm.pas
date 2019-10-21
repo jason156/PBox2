@@ -233,8 +233,6 @@ begin
 end;
 
 constructor TUIBaseForm.Create(AOwner: TComponent);
-var
-  strIniFileName: String;
 begin
   inherited;
 
@@ -246,8 +244,7 @@ begin
   BorderStyle := bsNone;
   Color       := clWhite;
 
-  strIniFileName := ChangeFileExt(ParamStr(0), '.ini');
-  with TIniFile.Create(strIniFileName) do
+  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
   begin
     Caption := ReadString(c_strIniUISection, 'Title', c_strTitle);
     Free;

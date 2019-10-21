@@ -13,9 +13,9 @@ object frmConfig: TfrmConfig
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Position = poMainFormCenter
+  Position = poDesigned
+  OnCreate = FormCreate
   OnDestroy = FormDestroy
-  OnShow = FormShow
   DesignSize = (
     832
     495)
@@ -134,6 +134,7 @@ object frmConfig: TfrmConfig
       ReadOnly = True
       TabOrder = 4
       Visible = False
+      OnInvokeSearch = srchbxBackImageInvokeSearch
     end
     object chkBackImage: TCheckBox
       Left = 10
@@ -142,6 +143,7 @@ object frmConfig: TfrmConfig
       Height = 17
       Caption = #26174#31034#32972#26223#22270
       TabOrder = 5
+      OnClick = chkBackImageClick
     end
     object chkAutorun: TCheckBox
       Left = 10
@@ -183,7 +185,6 @@ object frmConfig: TfrmConfig
     ParentFont = False
     TabOrder = 1
     OnClick = btnSaveClick
-    ExplicitTop = 458
   end
   object btnCancel: TButton
     Left = 616
@@ -200,7 +201,6 @@ object frmConfig: TfrmConfig
     ParentFont = False
     TabOrder = 2
     OnClick = btnCancelClick
-    ExplicitTop = 458
   end
   object rgShowStyle: TRadioGroup
     Left = 8
@@ -293,7 +293,7 @@ object frmConfig: TfrmConfig
       ItemHeight = 15
       ParentFont = False
       TabOrder = 0
-      ExplicitHeight = 434
+      OnClick = lstParentModuleClick
     end
     object lstSubModule: TListBox
       Left = 264
@@ -309,7 +309,6 @@ object frmConfig: TfrmConfig
       ItemHeight = 15
       ParentFont = False
       TabOrder = 1
-      ExplicitHeight = 434
     end
     object btnParentUp: TButton
       Left = 174
@@ -345,7 +344,7 @@ object frmConfig: TfrmConfig
     end
     object btnSubModuleIcon: TButton
       Left = 409
-      Top = 54
+      Top = 73
       Width = 53
       Height = 25
       Hint = #24517#39035#26159' 32'#215'32 '#30340' bmp,ico,png '#22270#29255
@@ -354,7 +353,6 @@ object frmConfig: TfrmConfig
       ParentShowHint = False
       ShowHint = True
       TabOrder = 6
-      ExplicitTop = 74
     end
     object chkGray: TCheckBox
       Left = 414
@@ -365,11 +363,10 @@ object frmConfig: TfrmConfig
       Caption = #38544#34255
       TabOrder = 7
       Visible = False
-      ExplicitTop = 324
     end
     object btnPModuleIcon: TButton
       Left = 174
-      Top = 54
+      Top = 73
       Width = 53
       Height = 25
       Hint = #24517#39035#26159' 32'#215'32 '#30340' bmp,ico,png '#22270#29255
@@ -378,7 +375,6 @@ object frmConfig: TfrmConfig
       ParentShowHint = False
       ShowHint = True
       TabOrder = 8
-      ExplicitTop = 74
     end
   end
   object chkShowCloseButton: TCheckBox
@@ -394,5 +390,9 @@ object frmConfig: TfrmConfig
     Font.Style = []
     ParentFont = False
     TabOrder = 5
+  end
+  object OpenPictureDialog1: TOpenPictureDialog
+    Left = 408
+    Top = 225
   end
 end

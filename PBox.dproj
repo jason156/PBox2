@@ -120,6 +120,7 @@
         <Icon_MainIcon>02.ico</Icon_MainIcon>
         <AppExecutionLevel>requireAdministrator</AppExecutionLevel>
         <DCC_Optimize>true</DCC_Optimize>
+        <DCC_PentiumSafeDivide>true</DCC_PentiumSafeDivide>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -148,12 +149,12 @@
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>02.ico</Icon_MainIcon>
         <AppExecutionLevel>requireAdministrator</AppExecutionLevel>
-        <DCC_Optimize>false</DCC_Optimize>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
+        <DCCReference Include="uBaseForm.pas"/>
         <DCCReference Include="uCommon.pas"/>
         <DCCReference Include="uCreateVCDialogDll.pas"/>
         <DCCReference Include="uCreateDelphiDll.pas"/>
