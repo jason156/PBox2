@@ -6,11 +6,13 @@ program PBox;
 
 uses
   Vcl.Forms,
-  uPBoxForm in 'uPBoxForm.pas' {frmPBox},
   uCommon in 'uCommon.pas',
   uCreateVCDialogDll in 'uCreateVCDialogDll.pas',
   uCreateDelphiDll in 'uCreateDelphiDll.pas',
-  uCreateEXE in 'uCreateEXE.pas';
+  uCreateEXE in 'uCreateEXE.pas',
+  uPBoxForm in 'uPBoxForm.pas' {frmPBox},
+  uConfigForm in 'uConfigForm.pas' {frmConfig},
+  uDBConfig in 'uDBConfig.pas' {DBConfig};
 
 {$R *.res}
 

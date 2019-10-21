@@ -16,6 +16,9 @@ function UpdateDataBaseScript: Boolean;
 { 获取本机IP }
 function GetNativeIP: String;
 
+{ 排序模块 }
+procedure SortModuleList(var lstModuleList: THashedStringList);
+
 type
   { 界面显示方式：菜单、按钮对话框、列表 }
   TShowStyle = (ssMenu, ssButton, ssList);
@@ -128,6 +131,12 @@ begin
   finally
     IdIPWatch.Free;
   end;
+end;
+
+{ 排序模块 }
+procedure SortModuleList(var lstModuleList: THashedStringList);
+begin
+  //
 end;
 
 end.

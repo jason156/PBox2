@@ -1,4 +1,7 @@
 unit uCreateEXE;
+{
+  ´´½¨ EXE ´°Ìå
+}
 
 interface
 

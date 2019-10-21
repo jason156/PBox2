@@ -8,7 +8,7 @@ interface
 uses Winapi.Windows, Winapi.Messages, System.SysUtils, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, uCommon, HookUtils;
 
 { 创建 VC Dialog Dll 窗体 }
-procedure PBoxRun_VC_DLGDll(MainForm: TForm; Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
+procedure PBoxRun_VC_DLGDll(Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
 
 { 销毁 VC Dialog Dll 窗体消息 }
 procedure FreeVCDialogDllForm;
@@ -22,17 +22,16 @@ var
   g_strVCDialogDllWindowName: String  = '';
   g_OldWndProc              : Pointer = nil;
   g_Old_CreateWindowExW     : function(dwExStyle: DWORD; lpClassName: LPCWSTR; lpWindowName: LPCWSTR; dwStyle: DWORD; X, Y, nWidth, nHeight: Integer; hWndParent: hWnd; hMenu: hMenu; hins: HINST; lpp: Pointer): hWnd; stdcall;
-  g_MainForm                : TForm;
 
-  { 解决 dll 中，当 Dll 窗体获取焦点，主窗体变成非激活状态 }
+{ 解决 dll 中，当 Dll 窗体获取焦点，主窗体变成非激活状态 }
 function NewDllFormProc(hWnd: THandle; msg: UINT; wParam: Cardinal; lParam: Cardinal): Integer; stdcall;
 begin
   { 如果子窗体获取焦点时，激活主窗体 }
   if msg = WM_ACTIVATE then
   begin
-    if g_MainForm <> nil then
+    if Application.MainForm <> nil then
     begin
-      SendMessage(g_MainForm.Handle, WM_NCACTIVATE, Integer(True), 0);
+      SendMessage(Application.MainForm.Handle, WM_NCACTIVATE, Integer(True), 0);
     end;
   end;
 
@@ -68,7 +67,7 @@ begin
     SetWindowPos(Result, g_TabDllForm.Handle, 0, 0, g_TabDllForm.Width, g_TabDllForm.Height, SWP_NOZORDER OR SWP_NOACTIVATE); // 最大化 Dll 子窗体
     g_OldWndProc := Pointer(GetWindowlong(Result, GWL_WNDPROC));                                                              // 解决 DLL 窗体获取焦点时，主窗体丢失焦点的问题
     SetWindowLong(Result, GWL_WNDPROC, LongInt(@NewDllFormProc));                                                             // 拦截 DLL 窗体消息
-    PostMessage(g_MainForm.Handle, WM_NCACTIVATE, 1, 0);                                                                      // 激活主窗体
+    PostMessage(Application.MainForm.Handle, WM_NCACTIVATE, 1, 0);                                                            // 激活主窗体
     UnHook(@g_Old_CreateWindowExW);                                                                                           // UNHOOK
     g_Old_CreateWindowExW := nil;                                                                                             // UNHOOK
   end
@@ -79,7 +78,7 @@ begin
 end;
 
 { 创建 VC Dialog Dll 窗体 }
-procedure PBoxRun_VC_DLGDll(MainForm: TForm; Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
+procedure PBoxRun_VC_DLGDll(Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
 var
   hDll                             : HMODULE;
   ShowDllForm                      : TShowDllForm;
@@ -92,7 +91,6 @@ var
 begin
   g_Page       := Page;
   g_TabDllForm := TabDllForm;
-  g_MainForm   := MainForm;
 
   { 获取参数 }
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
@@ -112,7 +110,7 @@ begin
     ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
     if not Assigned(ShowDllForm) then
     begin
-      MessageBox(g_MainForm.Handle, PChar(Format('加载 %s 的导出函数 %s 出错，请检查文件是否存在或者被占用', [g_strCreateDllFileName, c_strDllExportName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
+      MessageBox(Application.MainForm.Handle, PChar(Format('加载 %s 的导出函数 %s 出错，请检查文件是否存在或者被占用', [g_strCreateDllFileName, c_strDllExportName])), c_strMsgTitle, MB_OK or MB_ICONERROR);
       Exit;
     end;
 
@@ -126,7 +124,7 @@ begin
 
     if g_bExitProgram then
     begin
-      g_MainForm.Close;
+      Application.MainForm.Close;
     end
     else
     begin
@@ -139,7 +137,7 @@ begin
       else
       begin
         { 如果不是先前备份的，说明新的 Dll Form 创建来了 }
-        PostMessage(g_MainForm.Handle, WM_CREATENEWDLLFORM, 0, 0);
+        PostMessage(Application.MainForm.Handle, WM_CREATENEWDLLFORM, 0, 0);
       end;
     end;
   end;

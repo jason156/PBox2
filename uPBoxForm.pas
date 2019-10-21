@@ -20,9 +20,9 @@ type
     lblTime: TLabel;
     tmrDateTime: TTimer;
     rzpgcntrlAll: TPageControl;
-    rztbshtCenter: TTabSheet;
-    rztbshtConfig: TTabSheet;
-    rztbshtDllForm: TTabSheet;
+    tsButton: TTabSheet;
+    tsList: TTabSheet;
+    tsDll: TTabSheet;
     pnlIP: TPanel;
     lblIP: TLabel;
     bvlIP: TBevel;
@@ -57,6 +57,7 @@ type
     { 待实现 }
     function PBoxRun_VC_MFCDll: Boolean;
     function PBoxRun_QT_GUIDll: Boolean;
+    procedure OnSysConfig(Sender: TObject);
     procedure OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
   protected
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
@@ -68,6 +69,8 @@ var
 
 implementation
 
+uses uConfigForm;
+
 {$R *.dfm}
 
 function TfrmPBox.PBoxRun_VC_MFCDll: Boolean;
@@ -78,6 +81,11 @@ end;
 function TfrmPBox.PBoxRun_QT_GUIDll: Boolean;
 begin
   Result := True;
+end;
+
+procedure TfrmPBox.OnSysConfig(Sender: TObject);
+begin
+  ShowConfigForm(FlstAllDll);
 end;
 
 procedure TfrmPBox.OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
@@ -108,7 +116,7 @@ begin
   if CompareText(ExtractFileExt(g_strCreateDllFileName), '.exe') = 0 then
   begin
     strFileValue := FlstAllDll.Values[g_strCreateDllFileName];
-    PBoxRun_IMAGE_EXE(g_strCreateDllFileName, strFileValue, rzpgcntrlAll, rztbshtDllForm, lblInfo);
+    PBoxRun_IMAGE_EXE(g_strCreateDllFileName, strFileValue, rzpgcntrlAll, tsDll, lblInfo);
     Exit;
   end;
 
@@ -124,9 +132,9 @@ begin
   { 根据 DLL 文件类型的不同，创建 DLL 窗体 }
   case ft of
     ftDelphiDll:
-      PBoxRun_DelphiDll(FDelphiDllForm, rzpgcntrlAll, rztbshtDllForm, OnDelphiDllFormClose);
+      PBoxRun_DelphiDll(FDelphiDllForm, rzpgcntrlAll, tsDll, OnDelphiDllFormClose);
     ftVCDialogDll:
-      PBoxRun_VC_DLGDll(frmPBox, rzpgcntrlAll, rztbshtDllForm, lblInfo);
+      PBoxRun_VC_DLGDll(rzpgcntrlAll, tsDll, lblInfo);
     ftVCMFCDll:
       PBoxRun_VC_MFCDll;
     ftQTDll:
@@ -308,6 +316,9 @@ begin
     { 扫描 EXE 文件，添加到列表；读取配置文件 }
     ScanPlugins_EXE;
 
+    { 排序模块 }
+    SortModuleList(FlstAllDll);
+
     { 创建模块菜单 }
     CreateModuleMenu;
   finally
@@ -348,7 +359,7 @@ var
 begin
   { 初始化界面 }
   ShowPageTabView(False);
-  rzpgcntrlAll.ActivePage := rztbshtCenter;
+  rzpgcntrlAll.ActivePage := tsDll;
 
   { 显示 时间 }
   tmrDateTime.OnTimer(nil);
@@ -363,6 +374,7 @@ begin
   FlstAllDll             := THashedStringList.Create;
   g_strCreateDllFileName := '';
   FDelphiDllForm         := nil;
+  OnConfig               := OnSysConfig;
 
   { 扫描插件目录 }
   strDllModulePath := ExtractFilePath(ParamStr(0)) + 'plugins';
@@ -398,7 +410,7 @@ end;
 procedure TfrmPBox.FormResize(Sender: TObject);
 begin
   { 更改 Dll 窗体大小 }
-  EnumChildWindows(Handle, @EnumChildFunc, rztbshtDllForm.Handle);
+  EnumChildWindows(Handle, @EnumChildFunc, tsDll.Handle);
 end;
 
 end.

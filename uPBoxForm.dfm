@@ -211,26 +211,18 @@ object frmPBox: TfrmPBox
     Top = 100
     Width = 1002
     Height = 523
-    ActivePage = rztbshtDllForm
+    ActivePage = tsButton
     Align = alCustom
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
-    object rztbshtCenter: TTabSheet
-      Caption = 'rztbshtCenter'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+    object tsButton: TTabSheet
+      Caption = 'tsButton'
     end
-    object rztbshtConfig: TTabSheet
-      Caption = 'rztbshtConfig'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
+    object tsList: TTabSheet
+      Caption = 'tsList'
     end
-    object rztbshtDllForm: TTabSheet
-      Caption = 'rztbshtDllForm'
+    object tsDll: TTabSheet
+      Caption = 'tsDll'
     end
   end
   object ilMain: TImageList
