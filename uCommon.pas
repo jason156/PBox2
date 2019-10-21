@@ -31,7 +31,7 @@ type
 
   {
     Dll 的标准输出函数
-    函数名称：db_ShowDllForm
+    函数名称：db_ShowDllForm_Plugins
     参数说明:
     frm              : 窗体类名    ；TSPFileType 是 ftDelphiDll 时，才可用；Delphi专用，Delphi Dll 主窗体类名；其它语言置空，NULL；
     ft               : 文件类型    ；TSPFileType

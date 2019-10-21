@@ -23,7 +23,7 @@ var
   g_OldWndProc              : Pointer = nil;
   g_Old_CreateWindowExW     : function(dwExStyle: DWORD; lpClassName: LPCWSTR; lpWindowName: LPCWSTR; dwStyle: DWORD; X, Y, nWidth, nHeight: Integer; hWndParent: hWnd; hMenu: hMenu; hins: HINST; lpp: Pointer): hWnd; stdcall;
 
-{ 解决 dll 中，当 Dll 窗体获取焦点，主窗体变成非激活状态 }
+  { 解决 dll 中，当 Dll 窗体获取焦点，主窗体变成非激活状态 }
 function NewDllFormProc(hWnd: THandle; msg: UINT; wParam: Cardinal; lParam: Cardinal): Integer; stdcall;
 begin
   { 如果子窗体获取焦点时，激活主窗体 }
