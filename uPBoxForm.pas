@@ -294,7 +294,7 @@ begin
 
         { 获取 Dll 参数 }
         ShowDllForm(frm, ft, strPModuleName, strSModuleName, strClassName, strWindowName, strIconFileName, False);
-        strInfo := strDllFileName + '=' + string(strPModuleName) + ',' + string(strSModuleName) + ',' + string(strClassName) + ',' + string(strWindowName) + ',' + string(strIconFileName);
+        strInfo := strDllFileName + '=' + string(strPModuleName) + ';' + string(strSModuleName) + ';' + string(strClassName) + ';' + string(strWindowName) + ';' + string(strIconFileName);
         FlstAllDll.Add(strInfo);
       finally
         FreeLibrary(hDll);
@@ -318,8 +318,8 @@ begin
   for I := 0 to FlstAllDll.Count - 1 do
   begin
     strInfo        := FlstAllDll.ValueFromIndex[I];
-    strPModuleName := strInfo.Split([','])[0];
-    strSModuleName := strInfo.Split([','])[1];
+    strPModuleName := strInfo.Split([';'])[0];
+    strSModuleName := strInfo.Split([';'])[1];
 
     { 如果父菜单不存在，创建父菜单 }
     mmPM := mmMain.Items.Find(string(strPModuleName));

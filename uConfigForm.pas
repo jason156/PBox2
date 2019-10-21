@@ -205,7 +205,7 @@ begin
   { 模块列表 }
   for I := 0 to FlstModuleAll.Count - 1 do
   begin
-    strPModuleName := FlstModuleAll.ValueFromIndex[I].Split([','])[0];
+    strPModuleName := FlstModuleAll.ValueFromIndex[I].Split([';'])[0];
     if lstParentModule.Items.IndexOf(strPModuleName) = -1 then
       lstParentModule.Items.Add(strPModuleName);
   end;
@@ -312,8 +312,8 @@ begin
   { 模块列表 }
   for I := 0 to FlstModuleAll.Count - 1 do
   begin
-    strPModuleName := FlstModuleAll.ValueFromIndex[I].Split([','])[0];
-    strSModuleName := FlstModuleAll.ValueFromIndex[I].Split([','])[1];
+    strPModuleName := FlstModuleAll.ValueFromIndex[I].Split([';'])[0];
+    strSModuleName := FlstModuleAll.ValueFromIndex[I].Split([';'])[1];
     if CompareText(strModuleName, strPModuleName) = 0 then
     begin
       lstModule.Items.Add(strSModuleName);

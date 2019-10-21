@@ -95,8 +95,8 @@ begin
   g_Tabsheet    := ts;
   g_lblInfo     := lblInfo;
 
-  g_strEXEFormClassName := strFileValue.Split([','])[2];
-  g_strEXEFormTitleName := strFileValue.Split([','])[3];
+  g_strEXEFormClassName := strFileValue.Split([';'])[2];
+  g_strEXEFormTitleName := strFileValue.Split([';'])[3];
 
   if @g_OldEXE_CreateProcessW = nil then
     @g_OldEXE_CreateProcessW := HookProcInModule(kernel32, 'CreateProcessW', @_EXE_CreateProcessW);
