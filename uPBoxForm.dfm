@@ -177,7 +177,7 @@ object frmPBox: TfrmPBox
       end
     end
   end
-  object clbr1: TCoolBar
+  object clbrModuleMenu: TCoolBar
     Left = 0
     Top = 0
     Width = 1004
@@ -207,21 +207,26 @@ object frmPBox: TfrmPBox
     end
   end
   object rzpgcntrlAll: TPageControl
-    Left = 2
-    Top = 100
-    Width = 1002
-    Height = 523
-    ActivePage = tsDll
-    Align = alCustom
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Left = 0
+    Top = 28
+    Width = 1004
+    Height = 597
+    ActivePage = tsButton
+    Align = alClient
     TabOrder = 2
+    ExplicitLeft = 2
+    ExplicitTop = 34
+    ExplicitWidth = 1002
+    ExplicitHeight = 589
     object tsButton: TTabSheet
       Caption = 'tsButton'
+      ExplicitWidth = 994
+      ExplicitHeight = 495
       object imgButtonBack: TImage
         Left = 0
         Top = 0
-        Width = 994
-        Height = 495
+        Width = 996
+        Height = 569
         Align = alClient
         Stretch = True
         ExplicitLeft = 272
@@ -232,11 +237,13 @@ object frmPBox: TfrmPBox
     end
     object tsList: TTabSheet
       Caption = 'tsList'
+      ExplicitWidth = 994
+      ExplicitHeight = 495
       object imgListBack: TImage
         Left = 0
         Top = 0
-        Width = 994
-        Height = 495
+        Width = 996
+        Height = 569
         Align = alClient
         Stretch = True
         ExplicitLeft = 272
@@ -247,11 +254,13 @@ object frmPBox: TfrmPBox
     end
     object tsDll: TTabSheet
       Caption = 'tsDll'
+      ExplicitWidth = 994
+      ExplicitHeight = 495
       object imgDllFormBack: TImage
         Left = 0
         Top = 0
-        Width = 994
-        Height = 495
+        Width = 996
+        Height = 569
         Align = alClient
         Stretch = True
         ExplicitLeft = 272

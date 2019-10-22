@@ -12,7 +12,7 @@ type
     ilMainMenu: TImageList;
     pnlBottom: TPanel;
     mmMainMenu: TMainMenu;
-    clbr1: TCoolBar;
+    clbrModuleMenu: TCoolBar;
     tlbMenu: TToolBar;
     pnlInfo: TPanel;
     lblInfo: TLabel;
@@ -76,6 +76,11 @@ type
     { 获取 Dll 文件的图标 }
     function GetDllFileIcon(const strPModuleName, strSModuleName, strIconFileName: string): Integer;
     function ReadDllIconFromConfig(const strPModule, strSModule: string): Integer;
+    procedure ReCreate;
+    procedure ChangeUI;
+    procedure ChangeUI_Menu;
+    procedure ChangeUI_Button;
+    procedure ChangeUI_List;
   protected
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
     procedure WMCREATENEWDLLFORM(var msg: TMessage); message WM_CREATENEWDLLFORM;
@@ -460,8 +465,6 @@ begin
   if not DirectoryExists(ExtractFilePath(ParamStr(0)) + 'plugins') then
     Exit;
 
-  mmMainMenu.Items.Clear;
-  mmMainMenu.AutoMerge := False;
   try
     { 扫描 Dll 文件，添加到列表；当前插件目录 (plugins) }
     ScanPlugins_Dll;
@@ -477,8 +480,6 @@ begin
   finally
     if FUIShowStyle = ssMenu then
     begin
-      tlbMenu.Menu         := mmMainMenu;
-      mmMainMenu.AutoMerge := True;
     end;
   end;
 end;
@@ -530,18 +531,22 @@ begin
   end;
 end;
 
-procedure TfrmPBox.FormCreate(Sender: TObject);
+procedure TfrmPBox.ReCreate;
 var
   strDllModulePath: string;
 begin
   { 初始化参数 }
-  FUIShowStyle           := ssMenu;
+  FUIShowStyle           := GetShowStyle;
   FUIViewStyle           := vsSingle;
   FlstAllDll             := THashedStringList.Create;
   g_strCreateDllFileName := '';
   FDelphiDllForm         := nil;
   OnConfig               := OnSysConfig;
   TrayIconPMenu          := pmTray;
+  clbrModuleMenu.Visible := False;
+  mmMainMenu.AutoMerge   := False;
+  mmMainMenu.Items.Clear;
+  FlstAllDll.Clear;
 
   { 初始化界面 }
   ShowPageTabView(False);
@@ -559,6 +564,14 @@ begin
   strDllModulePath := ExtractFilePath(ParamStr(0)) + 'plugins';
   SetDllDirectory(PChar(strDllModulePath));
   ScanPlugins;
+
+  { 界面显示风格 }
+  ChangeUI;
+end;
+
+procedure TfrmPBox.FormCreate(Sender: TObject);
+begin
+  ReCreate;
 end;
 
 procedure TfrmPBox.FormActivate(Sender: TObject);
@@ -608,6 +621,36 @@ procedure TfrmPBox.mniTrayExitClick(Sender: TObject);
 begin
   CloseToTray := False;
   Close;
+end;
+
+{ 界面显示风格 }
+procedure TfrmPBox.ChangeUI;
+begin
+  case FUIShowStyle of
+    ssMenu:
+      ChangeUI_Menu;   // 菜单式
+    ssButton:          //
+      ChangeUI_Button; // 按钮式
+    ssList:            //
+      ChangeUI_List;   // 列表式
+  end;
+end;
+
+procedure TfrmPBox.ChangeUI_Menu;
+begin
+  tlbMenu.Menu           := mmMainMenu;
+  mmMainMenu.AutoMerge   := True;
+  clbrModuleMenu.Visible := True;
+end;
+
+procedure TfrmPBox.ChangeUI_Button;
+begin
+
+end;
+
+procedure TfrmPBox.ChangeUI_List;
+begin
+
 end;
 
 end.

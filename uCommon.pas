@@ -4,24 +4,6 @@ interface
 
 uses Winapi.Windows, Winapi.Messages, Vcl.Forms, System.SysUtils, System.Classes, System.IniFiles, IdIPWatch;
 
-{ 只允许运行一个实例 }
-procedure OnlyOneRunInstance;
-
-{ 提升权限 }
-function EnableDebugPrivilege(PrivName: string; CanDebug: Boolean): Boolean;
-
-{ 升级数据库---执行脚本 }
-function UpdateDataBaseScript: Boolean;
-
-{ 获取本机IP }
-function GetNativeIP: String;
-
-{ 排序模块 }
-procedure SortModuleList(var lstModuleList: THashedStringList);
-
-{ 搜索插件目录下面的 Dll 文件，添加到列表 }
-procedure SearchPlugInsDllFile(var lstDll: TStringList);
-
 type
   { 界面显示方式：菜单、按钮对话框、列表 }
   TShowStyle = (ssMenu, ssButton, ssList);
@@ -56,9 +38,28 @@ const
   c_strMsgTitle: PChar                        = '系统提示：';
   c_strAESKey                                 = 'dbyoung@sina.com';
   c_strDllExportName                          = 'db_ShowDllForm_Plugins';
+  WM_DESTORYPREDLLFORM                        = WM_USER + 1000;
+  WM_CREATENEWDLLFORM                         = WM_USER + 1001;
 
-  WM_DESTORYPREDLLFORM = WM_USER + 1000;
-  WM_CREATENEWDLLFORM  = WM_USER + 1001;
+{ 只允许运行一个实例 }
+procedure OnlyOneRunInstance;
+
+{ 提升权限 }
+function EnableDebugPrivilege(PrivName: string; CanDebug: Boolean): Boolean;
+
+{ 升级数据库---执行脚本 }
+function UpdateDataBaseScript: Boolean;
+
+{ 获取本机IP }
+function GetNativeIP: String;
+
+{ 排序模块 }
+procedure SortModuleList(var lstModuleList: THashedStringList);
+
+{ 搜索插件目录下面的 Dll 文件，添加到列表 }
+procedure SearchPlugInsDllFile(var lstDll: TStringList);
+
+function GetShowStyle: TShowStyle;
 
 var
   g_intVCDialogDllFormHandle: THandle = 0;
@@ -305,6 +306,15 @@ begin
     if (sr.Name <> '.') and (sr.Name <> '..') and (sr.Attr <> faDirectory) then
       lstDll.Add(strPlugInsPath + '\' + sr.Name);
     intFind := FindNext(sr);
+  end;
+end;
+
+function GetShowStyle: TShowStyle;
+begin
+  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+  begin
+    Result := TShowStyle(ReadInteger(c_strIniFormStyleSection, 'index', 0) mod 3);
+    Free;
   end;
 end;
 

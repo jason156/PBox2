@@ -427,11 +427,31 @@ end;
 
 procedure TfrmConfig.lstParentModuleClick(Sender: TObject);
 var
-  strPModuleName: string;
+  strPModuleName        : string;
+  strPModuleIconFileName: String;
 begin
   if lstParentModule.ItemIndex < 0 then
     Exit;
 
+  if lstParentModule.SelCount = 0 then
+    Exit;
+
+  { 父模块图标 }
+  imgPModuleIcon.Picture.Assign(nil);
+  imgSModuleIcon.Picture.Assign(nil);
+  strPModuleIconFileName := FmemIni.ReadString(c_strIniModuleSection, lstParentModule.Items.Strings[lstParentModule.ItemIndex] + '_ICON', '');
+  strPModuleIconFileName := ExtractFilePath(ParamStr(0)) + 'plugins\Icon\' + strPModuleIconFileName;
+  if FileExists(strPModuleIconFileName) then
+  begin
+    with TPicture.Create do
+    begin
+      LoadFromFile(strPModuleIconFileName);
+      imgPModuleIcon.Picture.LoadFromFile(strPModuleIconFileName);
+      Free;
+    end;
+  end;
+
+  { 子模块列表 }
   lstSubModule.Clear;
   strPModuleName := lstParentModule.Items.Strings[lstParentModule.ItemIndex];
   FillSubModule(lstSubModule, strPModuleName);
