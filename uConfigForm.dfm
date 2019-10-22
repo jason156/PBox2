@@ -380,6 +380,19 @@ object frmConfig: TfrmConfig
       ShowHint = True
       TabOrder = 8
     end
+    object btnAddEXE: TButton
+      Left = 409
+      Top = 366
+      Width = 53
+      Height = 25
+      Hint = #24517#39035#26159' 32'#215'32 '#30340' bmp,ico,png '#22270#29255
+      Anchors = [akRight, akBottom]
+      Caption = #28155#21152'EXE'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 9
+      OnClick = btnAddEXEClick
+    end
   end
   object chkShowCloseButton: TCheckBox
     Left = 156

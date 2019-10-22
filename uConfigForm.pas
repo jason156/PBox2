@@ -42,6 +42,7 @@ type
     chkShowCloseButton: TCheckBox;
     chkFullScreen: TCheckBox;
     OpenPictureDialog1: TOpenPictureDialog;
+    btnAddEXE: TButton;
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnDatabaseConfigClick(Sender: TObject);
@@ -54,6 +55,7 @@ type
     procedure btnParentDownClick(Sender: TObject);
     procedure btnSubUpClick(Sender: TObject);
     procedure btnSubDownClick(Sender: TObject);
+    procedure btnAddEXEClick(Sender: TObject);
   private
     { Private declarations }
     FmemIni      : TMemIniFile;
@@ -70,7 +72,7 @@ function ShowConfigForm(var lstModuleAll: THashedStringList): Boolean;
 
 implementation
 
-uses uDBConfig;
+uses uDBConfig, uAddEXE;
 
 {$R *.dfm}
 
@@ -127,6 +129,19 @@ begin
     lstParentModule.Items.Strings[intSelectedIndex] := strBackup;
     lstParentModule.Selected[intNextIndex]          := True;
   end;
+end;
+
+{ 添加 EXE }
+procedure TfrmConfig.btnAddEXEClick(Sender: TObject);
+begin
+  if lstParentModule.ItemIndex = -1 then
+  begin
+    MessageBox(Handle, '必须选择一个父模块', '系统提示：', MB_OK or MB_ICONERROR);
+    lstParentModule.SetFocus;
+    Exit;
+  end;
+
+  ShowAddEXEForm(lstParentModule.Items.Strings[lstParentModule.ItemIndex], FmemIni);
 end;
 
 procedure TfrmConfig.btnCancelClick(Sender: TObject);

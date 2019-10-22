@@ -13,7 +13,8 @@ uses
   uCreateEXE in 'uCreateEXE.pas',
   uPBoxForm in 'uPBoxForm.pas' {frmPBox} ,
   uConfigForm in 'uConfigForm.pas' {frmConfig} ,
-  uDBConfig in 'uDBConfig.pas' {DBConfig};
+  uDBConfig in 'uDBConfig.pas' {DBConfig} ,
+  uAddEXE in 'uAddEXE.pas' {frmAddEXE};
 
 {$R *.res}
 
