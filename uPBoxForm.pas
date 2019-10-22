@@ -131,7 +131,7 @@ begin
     Exit;
   end;
 
-  { Dll 文件 }
+  { Dll 文件，获取文件类型 }
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
   try
     ShowDllForm := GetProcAddress(hDll, c_strDllExportName);
