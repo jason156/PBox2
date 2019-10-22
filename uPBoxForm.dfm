@@ -177,7 +177,7 @@ object frmPBox: TfrmPBox
       end
     end
   end
-  object clbrModuleMenu: TCoolBar
+  object clbrPModule: TCoolBar
     Left = 0
     Top = 0
     Width = 1004
@@ -185,24 +185,24 @@ object frmPBox: TfrmPBox
     AutoSize = True
     Bands = <
       item
-        Control = tlbMenu
+        Control = tlbPModule
         ImageIndex = -1
         MinHeight = 24
         Width = 998
       end>
-    object tlbMenu: TToolBar
+    object tlbPModule: TToolBar
       Left = 11
       Top = 0
       Width = 989
       Height = 24
       ButtonHeight = 24
       ButtonWidth = 43
-      Caption = 'tlbMenu'
+      Caption = 'tlbPModule'
       Font.Charset = GB2312_CHARSET
       Font.Color = clWindowText
-      Font.Height = -16
+      Font.Height = -14
       Font.Name = #23435#20307
-      Font.Style = [fsBold]
+      Font.Style = []
       ParentFont = False
       ShowCaptions = True
       TabOrder = 0
@@ -296,5 +296,12 @@ object frmPBox: TfrmPBox
       Caption = #36864#20986
       OnClick = mniTrayExitClick
     end
+  end
+  object ilPModule: TImageList
+    ColorDepth = cd32Bit
+    Height = 32
+    Width = 32
+    Left = 208
+    Top = 196
   end
 end

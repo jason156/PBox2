@@ -12,8 +12,8 @@ type
     ilMainMenu: TImageList;
     pnlBottom: TPanel;
     mmMainMenu: TMainMenu;
-    clbrModuleMenu: TCoolBar;
-    tlbMenu: TToolBar;
+    clbrPModule: TCoolBar;
+    tlbPModule: TToolBar;
     pnlInfo: TPanel;
     lblInfo: TLabel;
     pnlTime: TPanel;
@@ -37,6 +37,7 @@ type
     imgDllFormBack: TImage;
     imgButtonBack: TImage;
     imgListBack: TImage;
+    ilPModule: TImageList;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -68,7 +69,9 @@ type
     { 待实现 }
     function PBoxRun_VC_MFCDll: Boolean;
     function PBoxRun_QT_GUIDll: Boolean;
+    { 系统配置 }
     procedure OnSysConfig(Sender: TObject);
+    { Delphi Dll Form 窗体关闭事件 }
     procedure OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
     { 获取 EXE 文件的图标 }
     function GetExeFileIcon(const strFileName: String): Integer; overload;
@@ -77,10 +80,18 @@ type
     function GetDllFileIcon(const strPModuleName, strSModuleName, strIconFileName: string): Integer;
     function ReadDllIconFromConfig(const strPModule, strSModule: string): Integer;
     procedure ReCreate;
+    { 界面显示风格 }
     procedure ChangeUI;
+    { 菜单式 }
     procedure ChangeUI_Menu;
+    { 按钮式 }
     procedure ChangeUI_Button;
+    { 列表式 }
     procedure ChangeUI_List;
+    { 父模块排序 }
+    procedure SortPModuleList(var lstPModuleList: TStringList);
+    { 参数置空，恢复默认值 }
+    procedure FillParamBlank;
   protected
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
     procedure WMCREATENEWDLLFORM(var msg: TMessage); message WM_CREATENEWDLLFORM;
@@ -95,21 +106,31 @@ uses uConfigForm;
 
 {$R *.dfm}
 
+{ 待实现 }
 function TfrmPBox.PBoxRun_VC_MFCDll: Boolean;
 begin
   Result := True;
 end;
 
+{ 待实现 }
 function TfrmPBox.PBoxRun_QT_GUIDll: Boolean;
 begin
   Result := True;
 end;
 
+{ 系统配置 }
 procedure TfrmPBox.OnSysConfig(Sender: TObject);
 begin
-  ShowConfigForm(FlstAllDll);
+  if ShowConfigForm(FlstAllDll) then
+  begin
+    Hide;
+    SendMessage(Handle, WM_DESTORYPREDLLFORM, 0, 0);
+    ReCreate;
+    Show;
+  end;
 end;
 
+{ Delphi Dll Form 窗体关闭事件 }
 procedure TfrmPBox.OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if FDelphiDllForm <> nil then
@@ -181,7 +202,8 @@ begin
     hProcess := OpenProcess(PROCESS_TERMINATE, False, g_hEXEProcessID);
     TerminateProcess(hProcess, 0);
     g_hEXEProcessID := 0;
-    CreateDllForm;
+    if Visible then
+      CreateDllForm;
     Exit;
   end;
 
@@ -191,14 +213,16 @@ begin
     FDelphiDllForm.Free;
     FDelphiDllForm := nil;
     FreeLibrary(hDll);
-    CreateDllForm;
+    if Visible then
+      CreateDllForm;
     Exit;
   end;
 
   if g_intVCDialogDllFormHandle = 0 then
   begin
     { 创建新的 Dll 窗体 }
-    CreateDllForm;
+    if Visible then
+      CreateDllForm;
   end
   else
   begin
@@ -256,8 +280,10 @@ begin
     if FileExists(strIconFileName) then
     begin
       strCurrIconFileName := ExtractFilePath(ParamStr(0)) + 'plugins\Icon\' + ExtractFileName(strIconFileName);
+
       if not DirectoryExists(ExtractFilePath(strCurrIconFileName)) then
         ForceDirectories(ExtractFilePath(strCurrIconFileName));
+
       if not FileExists(strCurrIconFileName) then
         CopyFile(PChar(strIconFileName), PChar(strCurrIconFileName), False);
 
@@ -531,22 +557,56 @@ begin
   end;
 end;
 
+{ 参数置空，恢复默认值 }
+procedure TfrmPBox.FillParamBlank;
+var
+  I, J: Integer;
+begin
+  g_intVCDialogDllFormHandle := 0;
+  g_strCreateDllFileName     := '';
+  g_bExitProgram             := False;
+  g_hEXEProcessID            := 0;
+  FUIShowStyle               := GetShowStyle;
+  FUIViewStyle               := vsSingle;
+  FDelphiDllForm             := nil;
+  OnConfig                   := OnSysConfig;
+  TrayIconPMenu              := pmTray;
+  clbrPModule.Visible        := False;
+  ilMainMenu.Clear;
+  ilPModule.Clear;
+
+  tlbPModule.Images := nil;
+  tlbPModule.Height := 30;
+  tlbPModule.Menu   := nil;
+
+  for I := tlbPModule.ButtonCount - 1 downto 0 do
+  begin
+    tlbPModule.Buttons[I].Free;
+  end;
+
+  mmMainMenu.AutoMerge := False;
+  for I                := mmMainMenu.Items.Count - 1 downto 0 do
+  begin
+    for J := mmMainMenu.Items.Items[I].Count - 1 downto 0 do
+    begin
+      mmMainMenu.Items.Items[I].Items[J].Free;
+    end;
+    mmMainMenu.Items.Items[I].Free;
+  end;
+  mmMainMenu.Items.Clear;
+
+  if FlstAllDll = nil then
+    FlstAllDll := THashedStringList.Create
+  else
+    FlstAllDll.Clear;
+end;
+
 procedure TfrmPBox.ReCreate;
 var
   strDllModulePath: string;
 begin
   { 初始化参数 }
-  FUIShowStyle           := GetShowStyle;
-  FUIViewStyle           := vsSingle;
-  FlstAllDll             := THashedStringList.Create;
-  g_strCreateDllFileName := '';
-  FDelphiDllForm         := nil;
-  OnConfig               := OnSysConfig;
-  TrayIconPMenu          := pmTray;
-  clbrModuleMenu.Visible := False;
-  mmMainMenu.AutoMerge   := False;
-  mmMainMenu.Items.Clear;
-  FlstAllDll.Clear;
+  FillParamBlank;
 
   { 初始化界面 }
   ShowPageTabView(False);
@@ -636,29 +696,103 @@ begin
   end;
 end;
 
+{ 菜单式 }
 procedure TfrmPBox.ChangeUI_Menu;
 begin
-  tlbMenu.Menu           := mmMainMenu;
-  mmMainMenu.AutoMerge   := True;
-  clbrModuleMenu.Visible := True;
+  tlbPModule.Menu      := mmMainMenu;
+  mmMainMenu.AutoMerge := True;
+  clbrPModule.Visible  := True;
 end;
 
+{ 父模块排序 }
+procedure TfrmPBox.SortPModuleList(var lstPModuleList: TStringList);
+var
+  strPModuleOrder: String;
+  strArrOrder    : TArray<String>;
+  I, intIndex    : Integer;
+  strTemp        : String;
+begin
+  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+  begin
+    strPModuleOrder := ReadString(c_strIniModuleSection, 'Order', '');
+    if Trim(strPModuleOrder) <> '' then
+    begin
+      strArrOrder := strPModuleOrder.Split([';']);
+      for I       := 0 to Length(strArrOrder) - 1 do
+      begin
+        if CompareText(lstPModuleList.Strings[I], strArrOrder[I]) <> 0 then
+        begin
+          intIndex                         := lstPModuleList.IndexOf(strArrOrder[I]);
+          strTemp                          := lstPModuleList.Strings[intIndex];
+          lstPModuleList.Strings[intIndex] := strArrOrder[I];
+          lstPModuleList.Strings[I]        := strTemp;
+        end;
+      end;
+    end;
+    Free;
+  end;
+end;
+
+{ 按钮式 }
 procedure TfrmPBox.ChangeUI_Button;
 var
-  tmpTB: TToolButton;
-  I    : Integer;
+  tmpTB          : TToolButton;
+  I              : Integer;
+  lstPModuleList : TStringList;
+  strIconFilePath: String;
+  strIconFileName: String;
+  icoPModule     : TIcon;
 begin
-  for I := 0 to FlstAllDll.Count - 1 do
-  begin
-    tmpTB         := TToolButton.Create(tlbMenu);
-    tmpTB.Parent  := tlbMenu;
-    tmpTB.Caption := FlstAllDll.ValueFromIndex[I].Split([';'])[0];
-    // tmpTB.ImageIndex := LoadImageFromList(strToolButtonCaption);
-    // tmpTB.OnClick    := OnParentModuleButtonClick;
+  tlbPModule.Images := ilPModule;
+  tlbPModule.Height := 58;
+
+  lstPModuleList := TStringList.Create;
+  try
+    for I := 0 to FlstAllDll.Count - 1 do
+    begin
+      if lstPModuleList.IndexOf(FlstAllDll.ValueFromIndex[I].Split([';'])[0]) = -1 then
+      begin
+        lstPModuleList.Add(FlstAllDll.ValueFromIndex[I].Split([';'])[0]);
+
+        with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+        begin
+          strIconFilePath := FlstAllDll.ValueFromIndex[I].Split([';'])[0] + '_ICON';
+          strIconFileName := ExtractFilePath(ParamStr(0)) + 'plugins\icon\' + ReadString(c_strIniModuleSection, strIconFilePath, '');
+          Free;
+        end;
+
+        if FileExists(strIconFileName) then
+        begin
+          icoPModule := TIcon.Create;
+          try
+            icoPModule.LoadFromFile(strIconFileName);
+            ilPModule.AddIcon(icoPModule);
+          finally
+            icoPModule.Free;
+          end;
+        end;
+      end;
+    end;
+
+    if lstPModuleList.Count <= 0 then
+      Exit;
+
+    SortPModuleList(lstPModuleList);
+    for I := lstPModuleList.Count - 1 downto 0 do
+    begin
+      tmpTB            := TToolButton.Create(tlbPModule);
+      tmpTB.Parent     := tlbPModule;
+      tmpTB.Caption    := lstPModuleList.Strings[I];
+      tmpTB.ImageIndex := I;
+      // tmpTB.OnClick    := OnParentModuleButtonClick;
+    end;
+    clbrPModule.Visible := True;
+  finally
+    lstPModuleList.Free;
   end;
-  clbrModuleMenu.Visible := True;
 end;
 
+{ 列表式 }
 procedure TfrmPBox.ChangeUI_List;
 begin
 
