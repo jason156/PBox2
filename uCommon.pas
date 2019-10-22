@@ -2,7 +2,7 @@ unit uCommon;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, Vcl.Forms, System.SysUtils, System.IniFiles, IdIPWatch;
+uses Winapi.Windows, Winapi.Messages, Vcl.Forms, System.SysUtils, System.Classes, System.IniFiles, IdIPWatch;
 
 { 只允许运行一个实例 }
 procedure OnlyOneRunInstance;
@@ -18,6 +18,9 @@ function GetNativeIP: String;
 
 { 排序模块 }
 procedure SortModuleList(var lstModuleList: THashedStringList);
+
+{ 搜索插件目录下面的 Dll 文件，添加到列表 }
+procedure SearchPlugInsDllFile(var lstDll: TStringList);
 
 type
   { 界面显示方式：菜单、按钮对话框、列表 }
@@ -282,6 +285,26 @@ begin
     SortSubModule(lstModuleList, strPModuleOrder, iniModule);
   finally
     iniModule.Free;
+  end;
+end;
+
+{ 搜索插件目录下面的 Dll 文件，添加到列表 }
+procedure SearchPlugInsDllFile(var lstDll: TStringList);
+var
+  strPlugInsPath: String;
+  sr            : TSearchRec;
+  intFind       : Integer;
+begin
+  strPlugInsPath := ExtractFilePath(ParamStr(0)) + 'plugins';
+  intFind        := FindFirst(strPlugInsPath + '\*.dll', faAnyFile, sr);
+  if not DirectoryExists(strPlugInsPath) then
+    Exit;
+
+  while intFind = 0 do
+  begin
+    if (sr.Name <> '.') and (sr.Name <> '..') and (sr.Attr <> faDirectory) then
+      lstDll.Add(strPlugInsPath + '\' + sr.Name);
+    intFind := FindNext(sr);
   end;
 end;
 

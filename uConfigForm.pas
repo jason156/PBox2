@@ -3,7 +3,7 @@ unit uConfigForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.IniFiles, System.Win.Registry,
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Variants, System.Classes, System.IniFiles, System.Win.Registry,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtDlgs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.WinXCtrls, Vcl.Buttons, uCommon;
 
 type
@@ -56,6 +56,9 @@ type
     procedure btnSubUpClick(Sender: TObject);
     procedure btnSubDownClick(Sender: TObject);
     procedure btnAddEXEClick(Sender: TObject);
+    procedure btnSubModuleIconClick(Sender: TObject);
+    procedure btnPModuleIconClick(Sender: TObject);
+    procedure lstSubModuleClick(Sender: TObject);
   private
     { Private declarations }
     FmemIni      : TMemIniFile;
@@ -64,6 +67,7 @@ type
     procedure ReadConfigFillUI;
     procedure SaveConfig;
     procedure FillSubModule(lstModule: TListBox; const strModuleName: string);
+    function CheckExeFile(const strPModuleName, strSModuleName: string; var strExeFileName: String): Boolean;
   public
     { Public declarations }
   end;
@@ -318,6 +322,82 @@ begin
   FmemIni.Free;
 end;
 
+{ 设置父模块显示图标 }
+procedure TfrmConfig.btnPModuleIconClick(Sender: TObject);
+var
+  strIconFilePath: String;
+begin
+  if lstParentModule.ItemIndex < 0 then
+  begin
+    MessageBox(Application.MainForm.Handle, '必须从父模块列表中选择一个模块', '系统提示：', MB_OK OR MB_ICONINFORMATION);
+    lstParentModule.SetFocus;
+    Exit;
+  end;
+
+  with TOpenDialog.Create(nil) do
+  begin
+    Filter := '图标文件(*.ico)|*.ico';
+    if Execute(Application.MainForm.Handle) then
+    begin
+      with TPicture.Create do
+      begin
+        LoadFromFile(FileName);
+        strIconFilePath := ExtractFilePath(ParamStr(0)) + 'plugins\Icon\' + ExtractFileName(FileName);
+        if not DirectoryExists(ExtractFilePath(strIconFilePath)) then
+          ForceDirectories(ExtractFilePath(strIconFilePath));
+        CopyFile(PChar(FileName), PChar(strIconFilePath), False);
+        FmemIni.WriteString(c_strIniModuleSection, lstParentModule.Items.Strings[lstParentModule.ItemIndex] + '_ICON', ExtractFileName(FileName));
+        imgPModuleIcon.Picture.LoadFromFile(strIconFilePath);
+        Free;
+      end;
+    end;
+    Free;
+  end;
+end;
+
+{ 设置子模块显示图标 }
+procedure TfrmConfig.btnSubModuleIconClick(Sender: TObject);
+var
+  strIconFilePath               : String;
+  strPModuleName, strSModuleName: String;
+begin
+  if lstParentModule.ItemIndex < 0 then
+  begin
+    MessageBox(Application.MainForm.Handle, '必须从父模块列表中选择一个模块', '系统提示：', MB_OK OR MB_ICONINFORMATION);
+    lstParentModule.SetFocus;
+    Exit;
+  end;
+
+  if lstSubModule.ItemIndex < 0 then
+  begin
+    MessageBox(Application.MainForm.Handle, '必须从子模块列表中选择一个模块', '系统提示：', MB_OK OR MB_ICONINFORMATION);
+    lstSubModule.SetFocus;
+    Exit;
+  end;
+
+  strPModuleName := lstParentModule.Items.Strings[lstParentModule.ItemIndex];
+  strSModuleName := lstSubModule.Items.Strings[lstSubModule.ItemIndex];
+  with TOpenDialog.Create(nil) do
+  begin
+    Filter := '图标文件(*.ico)|*.ico';
+    if Execute(Application.MainForm.Handle) then
+    begin
+      with TPicture.Create do
+      begin
+        LoadFromFile(FileName);
+        strIconFilePath := ExtractFilePath(ParamStr(0)) + 'plugins\Icon\' + ExtractFileName(FileName);
+        if not DirectoryExists(ExtractFilePath(strIconFilePath)) then
+          ForceDirectories(ExtractFilePath(strIconFilePath));
+        CopyFile(PChar(FileName), PChar(strIconFilePath), False);
+        FmemIni.WriteString(c_strIniModuleSection, String(strPModuleName) + '_' + string(strSModuleName) + '_ICON', ExtractFileName(FileName));
+        imgSModuleIcon.Picture.LoadFromFile(strIconFilePath);
+        Free;
+      end;
+    end;
+    Free;
+  end;
+end;
+
 procedure TfrmConfig.FillSubModule(lstModule: TListBox; const strModuleName: string);
 var
   strPModuleName: string;
@@ -346,6 +426,72 @@ begin
   lstSubModule.Clear;
   strPModuleName := lstParentModule.Items.Strings[lstParentModule.ItemIndex];
   FillSubModule(lstSubModule, strPModuleName);
+end;
+
+function TfrmConfig.CheckExeFile(const strPModuleName, strSModuleName: string; var strExeFileName: String): Boolean;
+var
+  I                  : Integer;
+  strParentModuleName: String;
+  strSubModuleName   : String;
+begin
+  Result := False;
+  for I  := 0 to FlstModuleAll.Count - 1 do
+  begin
+    strParentModuleName := FlstModuleAll.ValueFromIndex[I].Split([';'])[0];
+    strSubModuleName    := FlstModuleAll.ValueFromIndex[I].Split([';'])[1];
+    if (CompareText(strParentModuleName, strPModuleName) = 0) and (CompareText(strSubModuleName, strSModuleName) = 0) then
+    begin
+      strExeFileName := FlstModuleAll.Names[I];
+      Result         := CompareText('.exe', ExtractFileExt(strExeFileName)) = 0;
+      Break;
+    end;
+  end;
+end;
+
+procedure TfrmConfig.lstSubModuleClick(Sender: TObject);
+var
+  strPModuleName, strSModuleName: String;
+  strIconFileName               : String;
+  strExeFileName                : String;
+  IcoExe                        : TIcon;
+begin
+  if lstParentModule.ItemIndex < 0 then
+    Exit;
+
+  if lstSubModule.ItemIndex < 0 then
+    Exit;
+
+  imgSModuleIcon.Picture.Assign(nil);
+  strPModuleName := lstParentModule.Items.Strings[lstParentModule.ItemIndex];
+  strSModuleName := lstSubModule.Items.Strings[lstSubModule.ItemIndex];
+
+  if CheckExeFile(strPModuleName, strSModuleName, strExeFileName) then
+  begin
+    btnSubModuleIcon.Enabled := False;
+    imgSModuleIcon.Enabled   := False;
+    if ExtractIcon(HInstance, PChar(strExeFileName), $FFFFFFFF) > 0 then
+    begin
+      IcoExe := TIcon.Create;
+      try
+        IcoExe.Handle := ExtractIcon(HInstance, PChar(strExeFileName), 0);
+        imgSModuleIcon.Picture.Assign(IcoExe);
+      finally
+        IcoExe.Free;
+      end;
+    end;
+  end
+  else
+  begin
+    btnSubModuleIcon.Enabled := True;
+    imgSModuleIcon.Enabled   := True;
+    chkGray.Checked          := FmemIni.ReadBool(c_strIniModuleSection, String(strPModuleName) + '_' + string(strSModuleName) + '_HIDE', False);
+    strIconFileName          := FmemIni.ReadString(c_strIniModuleSection, strPModuleName + '_' + strSModuleName + '_ICON', '');
+    strIconFileName          := ExtractFilePath(ParamStr(0)) + 'plugins\Icon\' + strIconFileName;
+    if FileExists(strIconFileName) then
+    begin
+      imgSModuleIcon.Picture.LoadFromFile(strIconFileName);
+    end;
+  end;
 end;
 
 end.

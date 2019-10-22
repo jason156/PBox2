@@ -9,9 +9,9 @@ uses
 
 type
   TfrmPBox = class(TUIBaseForm)
-    ilMain: TImageList;
+    ilMainMenu: TImageList;
     pnlBottom: TPanel;
-    mmMain: TMainMenu;
+    mmMainMenu: TMainMenu;
     clbr1: TCoolBar;
     tlbMenu: TToolBar;
     pnlInfo: TPanel;
@@ -70,6 +70,12 @@ type
     function PBoxRun_QT_GUIDll: Boolean;
     procedure OnSysConfig(Sender: TObject);
     procedure OnDelphiDllFormClose(Sender: TObject; var Action: TCloseAction);
+    { 获取 EXE 文件的图标 }
+    function GetExeFileIcon(const strFileName: String): Integer; overload;
+    function GetExeFileIcon(const strEXEInfo, strFileName: string): Integer; overload;
+    { 获取 Dll 文件的图标 }
+    function GetDllFileIcon(const strPModuleName, strSModuleName, strIconFileName: string): Integer;
+    function ReadDllIconFromConfig(const strPModule, strSModule: string): Integer;
   protected
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
     procedure WMCREATENEWDLLFORM(var msg: TMessage); message WM_CREATENEWDLLFORM;
@@ -191,6 +197,7 @@ begin
   end
   else
   begin
+    { 销毁 VC Dialog Dll 窗体消息 }
     FreeVCDialogDllForm;
   end;
 end;
@@ -210,13 +217,68 @@ begin
   PostMessage(Handle, WM_DESTORYPREDLLFORM, 0, 0);
 end;
 
+function TfrmPBox.GetExeFileIcon(const strFileName: String): Integer;
+var
+  IcoExe: TIcon;
+begin
+  Result := -1;
+  if ExtractIcon(HInstance, PChar(strFileName), $FFFFFFFF) > 0 then
+  begin
+    IcoExe := TIcon.Create;
+    try
+      IcoExe.Handle := ExtractIcon(HInstance, PChar(strFileName), 0);
+      Result        := ilMainMenu.AddIcon(IcoExe);
+    finally
+      IcoExe.Free;
+    end;
+  end;
+end;
+
+{ 获取 EXE 文件的图标 }
+function TfrmPBox.GetExeFileIcon(const strEXEInfo, strFileName: string): Integer;
+var
+  strIconFileName    : String;
+  IcoExe             : TIcon;
+  strCurrIconFileName: String;
+begin
+  strIconFileName := strEXEInfo.Split([';'])[4];
+  if Trim(strIconFileName) = '' then
+  begin
+    Result := GetExeFileIcon(strFileName);
+  end
+  else
+  begin
+    if FileExists(strIconFileName) then
+    begin
+      strCurrIconFileName := ExtractFilePath(ParamStr(0)) + 'plugins\Icon\' + ExtractFileName(strIconFileName);
+      if not DirectoryExists(ExtractFilePath(strCurrIconFileName)) then
+        ForceDirectories(ExtractFilePath(strCurrIconFileName));
+      if not FileExists(strCurrIconFileName) then
+        CopyFile(PChar(strIconFileName), PChar(strCurrIconFileName), False);
+
+      IcoExe := TIcon.Create;
+      try
+        IcoExe.LoadFromFile(strCurrIconFileName);
+        Result := ilMainMenu.AddIcon(IcoExe);
+      finally
+        IcoExe.Free;
+      end;
+    end
+    else
+    begin
+      Result := GetExeFileIcon(strFileName);
+    end;
+  end;
+end;
+
 { 扫描 EXE 文件，读取配置文件 }
 procedure TfrmPBox.ScanPlugins_EXE;
 var
-  lstEXE     : TStringList;
-  I          : Integer;
-  strEXEInfo : String;
-  strFileName: String;
+  lstEXE      : TStringList;
+  I           : Integer;
+  strEXEInfo  : String;
+  strFileName : String;
+  intIconIndex: Integer;
 begin
   with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
   begin
@@ -225,8 +287,13 @@ begin
       ReadSection('EXE', lstEXE);
       for I := 0 to lstEXE.Count - 1 do
       begin
-        strFileName := lstEXE.Strings[I];
-        strEXEInfo  := ReadString('EXE', strFileName, '');
+        strFileName  := lstEXE.Strings[I];
+        strEXEInfo   := ReadString('EXE', strFileName, '');
+        intIconIndex := GetExeFileIcon(strEXEInfo, strFileName);
+        if strEXEInfo.CountChar(';') = 4 then
+          strEXEInfo := strEXEInfo + ';' + IntToStr(intIconIndex)
+        else
+          strEXEInfo := strEXEInfo + ';;' + IntToStr(intIconIndex);
         FlstAllDll.Add(Format('%s=%s', [strFileName, strEXEInfo]));
       end;
     finally
@@ -236,22 +303,65 @@ begin
   end;
 end;
 
-procedure GetDllFile(var lstDll: TStringList);
+function TfrmPBox.ReadDllIconFromConfig(const strPModule, strSModule: string): Integer;
 var
-  strPlugInsPath: String;
-  sr            : TSearchRec;
-  intFind       : Integer;
+  strIconFilePath: String;
+  strIconFileName: String;
+  IcoExe         : TIcon;
 begin
-  strPlugInsPath := ExtractFilePath(ParamStr(0)) + 'plugins';
-  intFind        := FindFirst(strPlugInsPath + '\*.dll', faAnyFile, sr);
-  if not DirectoryExists(strPlugInsPath) then
-    Exit;
-
-  while intFind = 0 do
+  Result := -1;
+  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
   begin
-    if (sr.Name <> '.') and (sr.Name <> '..') and (sr.Attr <> faDirectory) then
-      lstDll.Add(strPlugInsPath + '\' + sr.Name);
-    intFind := FindNext(sr);
+    strIconFilePath := ReadString(c_strIniModuleSection, Format('%s_%s_ICON', [strPModule, strSModule]), '');
+    strIconFileName := ExtractFilePath(ParamStr(0)) + 'plugins\icon\' + strIconFilePath;
+    if FileExists(strIconFileName) then
+    begin
+      IcoExe := TIcon.Create;
+      try
+        IcoExe.LoadFromFile(strIconFileName);
+        Result := ilMainMenu.AddIcon(IcoExe);
+      finally
+        IcoExe.Free;
+      end;
+    end;
+    Free;
+  end;
+end;
+
+{ 获取 Dll 文件的图标 }
+function TfrmPBox.GetDllFileIcon(const strPModuleName, strSModuleName, strIconFileName: string): Integer;
+var
+  strCurrIconFileName: String;
+  IcoExe             : TIcon;
+begin
+  if Trim(strIconFileName) = '' then
+  begin
+    { 从配置文件中读取图标信息 }
+    Result := ReadDllIconFromConfig(strPModuleName, strSModuleName);
+  end
+  else
+  begin
+    if FileExists(strIconFileName) then
+    begin
+      strCurrIconFileName := ExtractFilePath(ParamStr(0)) + 'plugins\icon\' + ExtractFileName(strIconFileName);
+      if not DirectoryExists(ExtractFilePath(strCurrIconFileName)) then
+        ForceDirectories(ExtractFilePath(strCurrIconFileName));
+      if not FileExists(strCurrIconFileName) then
+        CopyFile(PChar(strIconFileName), PChar(strCurrIconFileName), False);
+
+      IcoExe := TIcon.Create;
+      try
+        IcoExe.LoadFromFile(strCurrIconFileName);
+        Result := ilMainMenu.AddIcon(IcoExe);
+      finally
+        IcoExe.Free;
+      end;
+    end
+    else
+    begin
+      { 从配置文件中读取图标信息 }
+      Result := ReadDllIconFromConfig(strPModuleName, strSModuleName);
+    end;
   end;
 end;
 
@@ -268,11 +378,12 @@ var
   strInfo                       : string;
   I, Count                      : Integer;
   lstTemp                       : TStringList;
+  intIconIndex                  : Integer;
 begin
   lstTemp := TStringList.Create;
   try
     { 扫描 Dll 文件，仅限于插件目录(plugins) }
-    GetDllFile(lstTemp);
+    SearchPlugInsDllFile(lstTemp);
     Count := lstTemp.Count;
     if Count <= 0 then
       Exit;
@@ -294,7 +405,8 @@ begin
 
         { 获取 Dll 参数 }
         ShowDllForm(frm, ft, strPModuleName, strSModuleName, strClassName, strWindowName, strIconFileName, False);
-        strInfo := strDllFileName + '=' + string(strPModuleName) + ';' + string(strSModuleName) + ';' + string(strClassName) + ';' + string(strWindowName) + ';' + string(strIconFileName);
+        intIconIndex := GetDllFileIcon(string(strPModuleName), string(strSModuleName), string(strIconFileName));
+        strInfo      := strDllFileName + '=' + string(strPModuleName) + ';' + string(strSModuleName) + ';' + string(strClassName) + ';' + string(strWindowName) + ';' + string(strIconFileName) + ';' + IntToStr(intIconIndex);
         FlstAllDll.Add(strInfo);
       finally
         FreeLibrary(hDll);
@@ -314,27 +426,30 @@ var
   strSModuleName: String;
   mmPM          : TMenuItem;
   mmSM          : TMenuItem;
+  intIconIndex  : Integer;
 begin
   for I := 0 to FlstAllDll.Count - 1 do
   begin
     strInfo        := FlstAllDll.ValueFromIndex[I];
     strPModuleName := strInfo.Split([';'])[0];
     strSModuleName := strInfo.Split([';'])[1];
+    intIconIndex   := StrToInt(strInfo.Split([';'])[5]);
 
     { 如果父菜单不存在，创建父菜单 }
-    mmPM := mmMain.Items.Find(string(strPModuleName));
+    mmPM := mmMainMenu.Items.Find(string(strPModuleName));
     if mmPM = nil then
     begin
-      mmPM         := TMenuItem.Create(mmMain);
+      mmPM         := TMenuItem.Create(mmMainMenu);
       mmPM.Caption := string((strPModuleName));
-      mmMain.Items.Add(mmPM);
+      mmMainMenu.Items.Add(mmPM);
     end;
 
     { 创建子菜单 }
-    mmSM         := TMenuItem.Create(mmPM);
-    mmSM.Caption := string((strSModuleName));
-    mmSM.Tag     := I;
-    mmSM.OnClick := OnMenuItemClick;
+    mmSM            := TMenuItem.Create(mmPM);
+    mmSM.Caption    := string((strSModuleName));
+    mmSM.Tag        := I;
+    mmSM.ImageIndex := intIconIndex;
+    mmSM.OnClick    := OnMenuItemClick;
     mmPM.Add(mmSM);
   end;
 end;
@@ -345,8 +460,8 @@ begin
   if not DirectoryExists(ExtractFilePath(ParamStr(0)) + 'plugins') then
     Exit;
 
-  mmMain.Items.Clear;
-  mmMain.AutoMerge := False;
+  mmMainMenu.Items.Clear;
+  mmMainMenu.AutoMerge := False;
   try
     { 扫描 Dll 文件，添加到列表；当前插件目录 (plugins) }
     ScanPlugins_Dll;
@@ -362,8 +477,8 @@ begin
   finally
     if FUIShowStyle = ssMenu then
     begin
-      tlbMenu.Menu     := mmMain;
-      mmMain.AutoMerge := True;
+      tlbMenu.Menu         := mmMainMenu;
+      mmMainMenu.AutoMerge := True;
     end;
   end;
 end;

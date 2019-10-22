@@ -245,6 +245,7 @@ object frmConfig: TfrmConfig
       Width = 32
       Height = 32
       Stretch = True
+      OnDblClick = btnPModuleIconClick
     end
     object imgSModuleIcon: TImage
       Left = 420
@@ -252,6 +253,7 @@ object frmConfig: TfrmConfig
       Width = 32
       Height = 32
       Stretch = True
+      OnDblClick = btnSubModuleIconClick
     end
     object lblPModule: TLabel
       Left = 20
@@ -309,6 +311,7 @@ object frmConfig: TfrmConfig
       ItemHeight = 15
       ParentFont = False
       TabOrder = 1
+      OnClick = lstSubModuleClick
     end
     object btnParentUp: TButton
       Left = 174
@@ -351,12 +354,12 @@ object frmConfig: TfrmConfig
       Top = 73
       Width = 53
       Height = 25
-      Hint = #24517#39035#26159' 32'#215'32 '#30340' bmp,ico,png '#22270#29255
       Anchors = [akRight, akBottom]
       Caption = #22270#26631
       ParentShowHint = False
       ShowHint = True
       TabOrder = 6
+      OnClick = btnSubModuleIconClick
     end
     object chkGray: TCheckBox
       Left = 414
@@ -379,6 +382,7 @@ object frmConfig: TfrmConfig
       ParentShowHint = False
       ShowHint = True
       TabOrder = 8
+      OnClick = btnPModuleIconClick
     end
     object btnAddEXE: TButton
       Left = 409
