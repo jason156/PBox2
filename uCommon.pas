@@ -133,10 +133,156 @@ begin
   end;
 end;
 
+{ 排序父模块 }
+procedure SortModuleParent(var lstModuleList: THashedStringList; const strPModuleList: String);
+var
+  lstTemp           : THashedStringList;
+  I, J              : Integer;
+  strPModuleName    : String;
+  strOrderModuleName: String;
+begin
+  lstTemp := THashedStringList.Create;
+  try
+    for J := 0 to Length(strPModuleList.Split([';'])) - 1 do
+    begin
+      for I := lstModuleList.Count - 1 downto 0 do
+      begin
+        strPModuleName     := lstModuleList.ValueFromIndex[I].Split([';'])[0];
+        strOrderModuleName := strPModuleList.Split([';'])[J];
+        if CompareText(strOrderModuleName, strPModuleName) = 0 then
+        begin
+          lstTemp.Add(lstModuleList.Strings[I]);
+          lstModuleList.Delete(I);
+        end;
+      end;
+    end;
+
+    { 有可能会有剩下的；后添加的新模块(父模块)，在未排序之前，是不在排序列表中的 }
+    if lstModuleList.Count > 0 then
+    begin
+      for I := 0 to lstModuleList.Count - 1 do
+      begin
+        lstTemp.Add(lstModuleList.Strings[I]);
+      end;
+    end;
+
+    lstModuleList.Clear;
+    lstModuleList.Assign(lstTemp);
+  finally
+    lstTemp.Free;
+  end;
+end;
+
+{ 交换位置 }
+procedure SwapPosHashStringList(var lstModuleList: THashedStringList; const I, J: Integer);
+var
+  strTemp: String;
+begin
+  strTemp                  := lstModuleList.Strings[I];
+  lstModuleList.Strings[I] := lstModuleList.Strings[J];
+  lstModuleList.Strings[J] := strTemp;
+end;
+
+{ 查询指定模块的位置 }
+function FindSubModuleIndex(const lstModuleList: THashedStringList; const strPModuleName, strSModuleName: String): Integer;
+var
+  I                  : Integer;
+  strParentModuleName: String;
+  strSubModuleName   : String;
+begin
+  Result := -1;
+  for I  := 0 to lstModuleList.Count - 1 do
+  begin
+    strParentModuleName := lstModuleList.ValueFromIndex[I].Split([';'])[0];
+    strSubModuleName    := lstModuleList.ValueFromIndex[I].Split([';'])[1];
+    if (CompareText(strParentModuleName, strPModuleName) = 0) and (CompareText(strSubModuleName, strSModuleName) = 0) then
+    begin
+      Result := I;
+      Break;
+    end;
+  end;
+end;
+
+{ 查询指定子模块的指定位置的索引号 }
+function FindSubModulePos(const lstModuleList: THashedStringList; const strPModuleName: String; const intIndex: Integer): Integer;
+var
+  I, K               : Integer;
+  strParentModuleName: String;
+begin
+  Result := -1;
+  K      := -1;
+  for I  := 0 to lstModuleList.Count - 1 do
+  begin
+    strParentModuleName := lstModuleList.ValueFromIndex[I].Split([';'])[0];
+    if CompareText(strParentModuleName, strPModuleName) = 0 then
+    begin
+      Inc(K);
+      if K = intIndex then
+      begin
+        Result := I;
+        Break;
+      end;
+    end;
+  end;
+end;
+
+{ 排序子模块 }
+procedure SortSubModule_Proc(var lstModuleList: THashedStringList; const strPModuleName: String; const strSModuleOrder: string);
+var
+  I               : Integer;
+  intNewIndex     : Integer;
+  intOldIndex     : Integer;
+  strSubModuleName: String;
+begin
+  for I := 0 to Length(strSModuleOrder.Split([';'])) - 1 do
+  begin
+    strSubModuleName := strSModuleOrder.Split([';'])[I];
+    intNewIndex      := FindSubModuleIndex(lstModuleList, strPModuleName, strSubModuleName);
+    intOldIndex      := FindSubModulePos(lstModuleList, strPModuleName, I);
+    if (intNewIndex <> intOldIndex) and (intNewIndex > -1) and (intOldIndex > -1) then
+    begin
+      SwapPosHashStringList(lstModuleList, intNewIndex, intOldIndex);
+    end;
+  end;
+end;
+
+{ 排序子模块 }
+procedure SortSubModule(var lstModuleList: THashedStringList; const strPModuleOrder: String; const iniModule: TIniFile);
+var
+  I, Count       : Integer;
+  strPModuleName : String;
+  strSModuleOrder: String;
+begin
+  Count := Length(strPModuleOrder.Split([';']));
+  for I := 0 to Count - 1 do
+  begin
+    strPModuleName  := strPModuleOrder.Split([';'])[I];
+    strSModuleOrder := iniModule.ReadString(c_strIniModuleSection, strPModuleName, '');
+    if Trim(strSModuleOrder) <> '' then
+    begin
+      SortSubModule_Proc(lstModuleList, strPModuleName, strSModuleOrder);
+    end;
+  end;
+end;
+
 { 排序模块 }
 procedure SortModuleList(var lstModuleList: THashedStringList);
+var
+  strPModuleOrder: String;
+  iniModule      : TIniFile;
 begin
-  //
+  iniModule := TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini'));
+  try
+    { 排序父模块 }
+    strPModuleOrder := iniModule.ReadString(c_strIniModuleSection, 'Order', '');
+    if Trim(strPModuleOrder) <> '' then
+      SortModuleParent(lstModuleList, strPModuleOrder);
+
+    { 排序子模块 }
+    SortSubModule(lstModuleList, strPModuleOrder, iniModule);
+  finally
+    iniModule.Free;
+  end;
 end;
 
 end.
