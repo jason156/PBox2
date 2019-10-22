@@ -137,6 +137,8 @@ end;
 
 { Ìí¼Ó EXE }
 procedure TfrmConfig.btnAddEXEClick(Sender: TObject);
+var
+  strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strExeFileName: string;
 begin
   if lstParentModule.ItemIndex = -1 then
   begin
@@ -145,7 +147,14 @@ begin
     Exit;
   end;
 
-  ShowAddEXEForm(lstParentModule.Items.Strings[lstParentModule.ItemIndex], FmemIni);
+  strPModuleName := lstParentModule.Items.Strings[lstParentModule.ItemIndex];
+  if ShowAddEXEForm(strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strExeFileName) then
+  begin
+    FmemIni.WriteString('EXE', strExeFileName, Format('%s;%s;%s;%s', [strPModuleName, strSModuleName, strFormClassName, strFormTitleName]));
+    lstSubModule.ItemIndex := lstSubModule.Items.Add(strSModuleName);
+    FlstModuleAll.Add(Format('%s=%s;%s;%s;%s', [strExeFileName, strPModuleName, strSModuleName, strFormClassName, strFormTitleName]));
+    lstSubModule.OnClick(nil);
+  end;
 end;
 
 procedure TfrmConfig.btnCancelClick(Sender: TObject);
