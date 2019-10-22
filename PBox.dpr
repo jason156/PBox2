@@ -22,6 +22,7 @@ begin
   OnlyOneRunInstance;
   UpdateDataBaseScript;
   Application.Initialize;
+  ReportMemoryLeaksOnShutdown   := True;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TfrmPBox, frmPBox);
   Application.Run;

@@ -144,7 +144,7 @@ end;
 procedure TfrmPBox.WMCREATENEWDLLFORM(var msg: TMessage);
 var
   hDll                              : HMODULE;
-  ShowDllForm                       : TShowDllForm;
+  ShowDllForm                       : Tdb_ShowDllForm_Plugins;
   frm                               : TFormClass;
   strParamModuleName, strModuleName : PAnsiChar;
   strFormClassName, strFormTitleName: PAnsiChar;
@@ -399,7 +399,7 @@ end;
 procedure TfrmPBox.ScanPlugins_Dll;
 var
   hDll                          : HMODULE;
-  ShowDllForm                   : TShowDllForm;
+  ShowDllForm                   : Tdb_ShowDllForm_Plugins;
   frm                           : TFormClass;
   strPModuleName, strSModuleName: PAnsiChar;
   strClassName, strWindowName   : PAnsiChar;

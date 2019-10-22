@@ -27,7 +27,7 @@ type
     strIconFileName  : 图标文件    ；如果没有指定，从DLL/EXE获取图标；
     bShowForm        : 是否显示窗体；扫描 DLL 时，不用显示 DLL 窗体，只是获取参数；执行时，才显示 DLL 窗体；
   }
-  TShowDllForm = procedure(var frm: TFormClass; var ft: TSPFileType; var strParentModuleName, strModuleName, strClassName, strWindowName, strIconFileName: PAnsiChar; const bShow: Boolean = True); stdcall;
+  Tdb_ShowDllForm_Plugins = procedure(var frm: TFormClass; var ft: TSPFileType; var strParentModuleName, strModuleName, strClassName, strWindowName, strIconFileName: PAnsiChar; const bShow: Boolean = True); stdcall;
 
 const
   c_strTitle                                  = '基于 DLL 的模块化开发平台 v2.0';
@@ -41,7 +41,7 @@ const
   WM_DESTORYPREDLLFORM                        = WM_USER + 1000;
   WM_CREATENEWDLLFORM                         = WM_USER + 1001;
 
-{ 只允许运行一个实例 }
+  { 只允许运行一个实例 }
 procedure OnlyOneRunInstance;
 
 { 提升权限 }

@@ -14,7 +14,7 @@ implementation
 procedure PBoxRun_DelphiDll(var DllForm: TForm; Page: TPageControl; tsDllForm: TTabSheet; OnDelphiDllFormClose: TCloseEvent);
 var
   hDll                             : HMODULE;
-  ShowDllForm                      : TShowDllForm;
+  ShowDllForm                      : Tdb_ShowDllForm_Plugins;
   frm                              : TFormClass;
   strParamModuleName, strModuleName: PAnsiChar;
   strClassName, strWindowName      : PAnsiChar;

@@ -81,7 +81,7 @@ end;
 procedure PBoxRun_VC_DLGDll(Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
 var
   hDll                             : HMODULE;
-  ShowDllForm                      : TShowDllForm;
+  ShowDllForm                      : Tdb_ShowDllForm_Plugins;
   frm                              : TFormClass;
   ft                               : TSPFileType;
   strParamModuleName, strModuleName: PAnsiChar;
