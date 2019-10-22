@@ -195,12 +195,14 @@ object frmPBox: TfrmPBox
       Top = 0
       Width = 989
       Height = 24
+      ButtonHeight = 24
+      ButtonWidth = 43
       Caption = 'tlbMenu'
       Font.Charset = GB2312_CHARSET
       Font.Color = clWindowText
-      Font.Height = -14
+      Font.Height = -16
       Font.Name = #23435#20307
-      Font.Style = []
+      Font.Style = [fsBold]
       ParentFont = False
       ShowCaptions = True
       TabOrder = 0
@@ -214,14 +216,8 @@ object frmPBox: TfrmPBox
     ActivePage = tsButton
     Align = alClient
     TabOrder = 2
-    ExplicitLeft = 2
-    ExplicitTop = 34
-    ExplicitWidth = 1002
-    ExplicitHeight = 589
     object tsButton: TTabSheet
       Caption = 'tsButton'
-      ExplicitWidth = 994
-      ExplicitHeight = 495
       object imgButtonBack: TImage
         Left = 0
         Top = 0
@@ -237,8 +233,6 @@ object frmPBox: TfrmPBox
     end
     object tsList: TTabSheet
       Caption = 'tsList'
-      ExplicitWidth = 994
-      ExplicitHeight = 495
       object imgListBack: TImage
         Left = 0
         Top = 0
@@ -254,8 +248,6 @@ object frmPBox: TfrmPBox
     end
     object tsDll: TTabSheet
       Caption = 'tsDll'
-      ExplicitWidth = 994
-      ExplicitHeight = 495
       object imgDllFormBack: TImage
         Left = 0
         Top = 0

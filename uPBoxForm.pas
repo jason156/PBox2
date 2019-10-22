@@ -644,8 +644,19 @@ begin
 end;
 
 procedure TfrmPBox.ChangeUI_Button;
+var
+  tmpTB: TToolButton;
+  I    : Integer;
 begin
-
+  for I := 0 to FlstAllDll.Count - 1 do
+  begin
+    tmpTB         := TToolButton.Create(tlbMenu);
+    tmpTB.Parent  := tlbMenu;
+    tmpTB.Caption := FlstAllDll.ValueFromIndex[I].Split([';'])[0];
+    // tmpTB.ImageIndex := LoadImageFromList(strToolButtonCaption);
+    // tmpTB.OnClick    := OnParentModuleButtonClick;
+  end;
+  clbrModuleMenu.Visible := True;
 end;
 
 procedure TfrmPBox.ChangeUI_List;
