@@ -1,2 +1,48 @@
-Delphi ç¤ºä¾‹åœ¨ Module  ç›®å½•ä¸‹
-VC      ç¤ºä¾‹åœ¨ DOC\VC ç›®å½•ä¸‹
+Ò»£º¿ª·¢×ÚÖ¼
+  PBox ÊÇÒ»¸ö»ùÓÚ DLL µÄÄ£¿é»¯¿ª·ÅÆ½Ì¨¡£
+
+  ±¾×Å¾¡Á¿ÉÙÐÞ¸ÄÔ­ÓÐ¹¤³ÌÔ´´úÂëµÄÔ­Ôò¡£
+  
+  Delphi10.3/WIN10X64 ÏÂ¿ª·¢¡£
+
+  WIN7X64/WIN10X64ÏÂ²âÊÔÍ¨¹ý¡£
+
+
+¶þ£ºÊ¹ÓÃ·½·¨
+  Delphi Ô­¹¤³ÌÎÄ¼þ£¬ÐÞ¸ÄÎª DLL ¹¤³Ì¡£Êä³öÌØ¶¨º¯Êý¾Í¿ÉÒÔÁË¡£°Ñ±àÒëºóµÄ DLL ÎÄ¼þ·ÅÖÃµ½ plugins Ä¿Â¼ÏÂ¾Í¿ÉÒÔÁË¡£
+  Delphi º¯ÊýÉùÃ÷£º
+    type
+      { Ö§³ÖµÄÎÄ¼þÀàÐÍ }
+      TSPFileType = (ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE);
+
+    procedure db_ShowDllForm_Plugins(var frm: TFormClass; var ft: TSPFileType; var strParentModuleName, strSubModuleName, strClassName, strWindowName, strIconFileName: PAnsiChar; const bShow: Boolean = True); stdcall;
+  Ê¾Àý£ºModule\SysSPath
+
+  VC Ô­¹¤³Ì±£³Ö²»±ä£¬±àÒëµÃµ½ EXE¡£ ÐÂ½¨Ò»¸ö .CPP ÎÄ¼þ£¬±àÒë£¬ºÍÔ­À´µÄ±àÒë EXE ²úÉúµÄ OBJ ÎÄ¼þ£¬½øÐÐÁ¬½Ó£¬µÃµ½ DLL ÎÄ¼þ£¬·ÅÖÃµ½ plugins Ä¿Â¼ÏÂ¾Í¿ÉÒÔÁË¡£
+  VC º¯ÊýÉùÃ÷£º
+    enum TSPFileType {ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE};
+    extern "C" __declspec(dllexport) void db_ShowDllForm_Plugins(void** frm, TSPFileType* spFileType, char** strParentModuleName, char** strSubModuleName, char** strClassName, char** strWindowName, char** strIconFileName, const bool show = true)
+  Ê¾Àý1£ºDOC\VC\Dialog\7zip
+  Ê¾Àý2£ºDOC\VC\Dialog\Notepad2
+
+
+Èý£ºÊä³öº¯ÊýËµÃ÷
+  DLL Êä³öº¯Êý²ÎÊýËµÃ÷£º
+    frm                 £ºDelphi ×¨ÓÃ¡£ Delphi ÖÐ DLL Ö÷´°ÌåÀàÃû£»VC ÖÃ¿Õ£»
+    ft                  £º±¾ DLL µÄÀàÐÍ£» Ö§³Ö£ºDelphiDll, VCDialogDll, VCMFCDll, QTDll, ftEXE£»
+    strParentModuleName £º¸¸Ä£¿éÃû³Æ£»
+    strSubModuleName    £º×ÓÄ£¿éÃû³Æ£»
+    strClassName        £ºVC ×¨ÓÃ£»VC DLL Ö÷´°ÌåÀàÃû£»    Delphi ÖÃ¿Õ£»
+    strWindowName       £ºVC ×¨ÓÃ£»VC DLL Ö÷´°Ìå±êÌâÃû³Æ£»Delphi ÖÃ¿Õ£»
+    strIconFileName     £ºÍ¼±êÎÄ¼þ£»
+    bShow               £ºÊÇ·ñÏÔÊ¾£»µÚÒ»´Îµ÷ÓÃ VC DLL Ê±£¬ÊÇ²»ÓÃ´´½¨´´½¨ DLL ´°ÌåµÄ£¬Ö»ÊÇÎªÁË»ñÈ¡²ÎÊý¡£
+  
+  
+ËÄ£ºÌØÉ«¹¦ÄÜ
+  ½çÃæÖ§³Ö£¬²Ëµ¥·½Ê½ÏÔÊ¾¡¢°´Å¥£¨¶Ô»°¿ò£©·½Ê½ÏÔÊ¾¡¢ÁÐ±íÊÓ·½Ê½ÏÔÊ¾¡£
+  PBox »¹Ö§³Ö½«Ò»¸ö EXE ÏÔÊ¾ÔÚ´°ÌåÖÐ¡£
+
+
+Îå£º½ÓÏÂÀ´¹¤×÷£º
+  Ìí¼ÓÊý¾Ý¿âÖ§³Ö£¨ÓÉÓÚ±¾ÈË¶ÔÊý¾Ý¿â²»ÊìÏ¤£¬ËùÒÔ¿ª·¢½ÏÂý£©
+  Ìí¼Ó VC(MFC)/QT DLL ´°ÌåµÄÖ§³Ö£»
