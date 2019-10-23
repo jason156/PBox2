@@ -149,7 +149,7 @@ begin
   begin
     FmemIni.WriteString('EXE', strExeFileName, Format('%s;%s;%s;%s', [strPModuleName, strSModuleName, strFormClassName, strFormTitleName]));
     lstSubModule.ItemIndex := lstSubModule.Items.Add(strSModuleName);
-    FlstModuleAll.Add(Format('%s=%s;%s;%s;%s', [strExeFileName, strPModuleName, strSModuleName, strFormClassName, strFormTitleName]));
+    FlstModuleAll.Add(Format('%s=%s;%s;%s;%s;', [strExeFileName, strPModuleName, strSModuleName, strFormClassName, strFormTitleName]));
     lstSubModule.OnClick(nil);
   end;
 end;
