@@ -7,7 +7,7 @@ interface
 
 uses Winapi.Windows, Winapi.ShellAPI, System.SysUtils, Vcl.Forms, Vcl.ComCtrls, Vcl.StdCtrls, Winapi.TlHelp32, uCommon;
 
-procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String; pg: TPageControl; ts: TTabSheet; lblInfo: TLabel);
+procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String; pg: TPageControl; ts: TTabSheet; lblInfo: TLabel; const UIShowStyle: TShowStyle);
 
 implementation
 
@@ -19,6 +19,7 @@ var
   g_Tabsheet                  : TTabSheet;
   g_lblInfo                   : TLabel;
   g_strCreateDllFileNameBackUp: String;
+  g_UIShowStyle               : TShowStyle;
 
   { 进程是否关闭 }
 function CheckProcessExist(const intPID: DWORD): Boolean;
@@ -59,6 +60,12 @@ begin
       g_strCreateDllFileName       := '';
       g_strCreateDllFileNameBackUp := '';
     end;
+
+    if g_UIShowStyle = ssButton then
+    begin
+      g_PageControl.ActivePageIndex := 0;
+    end;
+
     KillTimer(Application.MainForm.Handle, $2000);
   end;
 end;
@@ -92,13 +99,14 @@ begin
   end;
 end;
 
-procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String; pg: TPageControl; ts: TTabSheet; lblInfo: TLabel);
+procedure PBoxRun_IMAGE_EXE(const strEXEFileName, strFileValue: String; pg: TPageControl; ts: TTabSheet; lblInfo: TLabel; const UIShowStyle: TShowStyle);
 begin
   g_PageControl                := pg;
   g_Tabsheet                   := ts;
   g_lblInfo                    := lblInfo;
   g_strFileValue               := strFileValue;
   g_strCreateDllFileNameBackUp := g_strCreateDllFileName;
+  g_UIShowStyle                := UIShowStyle;
 
   g_strEXEFormClassName := strFileValue.Split([';'])[2];
   g_strEXEFormTitleName := strFileValue.Split([';'])[3];

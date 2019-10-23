@@ -8,7 +8,7 @@ interface
 uses Winapi.Windows, Winapi.Messages, System.SysUtils, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, uCommon, HookUtils;
 
 { 创建 VC Dialog Dll 窗体 }
-procedure PBoxRun_VC_DLGDll(Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
+procedure PBoxRun_VC_DLGDll(Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel; const uiShowStyle: TShowStyle);
 
 { 销毁 VC Dialog Dll 窗体消息 }
 procedure FreeVCDialogDllForm;
@@ -18,6 +18,7 @@ implementation
 var
   g_Page                    : TPageControl;
   g_TabDllForm              : TTabSheet;
+  g_UIShowStyle             : TShowStyle;
   g_strVCDialogDllClassName : String  = '';
   g_strVCDialogDllWindowName: String  = '';
   g_OldWndProc              : Pointer = nil;
@@ -78,7 +79,7 @@ begin
 end;
 
 { 创建 VC Dialog Dll 窗体 }
-procedure PBoxRun_VC_DLGDll(Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel);
+procedure PBoxRun_VC_DLGDll(Page: TPageControl; const TabDllForm: TTabSheet; lblInfo: TLabel; const uiShowStyle: TShowStyle);
 var
   hDll                             : HMODULE;
   ShowDllForm                      : Tdb_ShowDllForm_Plugins;
@@ -89,8 +90,9 @@ var
   strIconFileName                  : PAnsiChar;
   strBakDllFileName                : String;
 begin
-  g_Page       := Page;
-  g_TabDllForm := TabDllForm;
+  g_Page        := Page;
+  g_TabDllForm  := TabDllForm;
+  g_UIShowStyle := uiShowStyle;
 
   { 获取参数 }
   hDll := LoadLibrary(PChar(g_strCreateDllFileName));
@@ -133,6 +135,10 @@ begin
         { 如果销毁的 Dll，正是先前备份的 Dll，表示没有 Dll Form 需要创建； }
         g_strCreateDllFileName := '';
         lblInfo.Caption        := '';
+        if g_UIShowStyle = ssButton then
+        begin
+          g_Page.ActivePageIndex := 0;
+        end;
       end
       else
       begin

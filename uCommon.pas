@@ -2,7 +2,7 @@ unit uCommon;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, Vcl.Forms, System.SysUtils, System.Classes, System.IniFiles, IdIPWatch;
+uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, IdIPWatch;
 
 type
   { 界面显示方式：菜单、按钮对话框、列表 }

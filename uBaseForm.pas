@@ -33,7 +33,6 @@ type
     procedure TrayIconDblClick(Sender: TObject);
     function GetTrayIconPMenu: TPopupMenu;
     procedure SetTrayIconPMenu(const Value: TPopupMenu);
-    procedure LoadButtonBmp(img: TImage; const strResName: String; const intState: Integer);
     procedure OnSysButtonCloseMouseEnter(Sender: TObject);
     procedure OnSysButtonCloseMouseLeave(Sender: TObject);
     procedure OnSysButtonMaxMouseEnter(Sender: TObject);
@@ -60,6 +59,7 @@ type
     property CloseToTray: Boolean read GetCloseToTray write SetCloseToTray;
     property TrayIconPMenu: TPopupMenu read GetTrayIconPMenu write SetTrayIconPMenu;
     property MainTrayIcon: TTrayIcon read FTrayIcon;
+    procedure LoadButtonBmp(img: TImage; const strResName: String; const intState: Integer);
   end;
 
 const

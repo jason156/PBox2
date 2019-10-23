@@ -230,13 +230,58 @@ object frmPBox: TfrmPBox
         ExplicitWidth = 105
         ExplicitHeight = 105
       end
+      object pnlModuleDialog: TPanel
+        Left = 176
+        Top = 96
+        Width = 655
+        Height = 385
+        BevelOuter = bvNone
+        BorderStyle = bsSingle
+        Caption = 'pnlModuleDialog'
+        Color = clWhite
+        Ctl3D = False
+        ParentBackground = False
+        ParentCtl3D = False
+        ShowCaption = False
+        TabOrder = 0
+        object pnlModuleDialogTitle: TPanel
+          Left = 0
+          Top = 0
+          Width = 653
+          Height = 38
+          Align = alTop
+          Caption = 'pnlModuleDialogTitle'
+          Color = 9916930
+          Font.Charset = GB2312_CHARSET
+          Font.Color = clWhite
+          Font.Height = -19
+          Font.Name = #24494#36719#38597#40657
+          Font.Style = [fsBold]
+          ParentBackground = False
+          ParentFont = False
+          TabOrder = 0
+          ExplicitWidth = 650
+          DesignSize = (
+            653
+            38)
+          object imgSubModuleClose: TImage
+            Left = 616
+            Top = 2
+            Width = 31
+            Height = 32
+            Anchors = [akTop, akRight]
+            AutoSize = True
+            Transparent = True
+            OnClick = imgSubModuleCloseClick
+            OnMouseEnter = imgSubModuleCloseMouseEnter
+            OnMouseLeave = imgSubModuleCloseMouseLeave
+            ExplicitLeft = 584
+          end
+        end
+      end
     end
     object tsList: TTabSheet
       Caption = 'tsList'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object imgListBack: TImage
         Left = 0
         Top = 0
@@ -252,10 +297,6 @@ object frmPBox: TfrmPBox
     end
     object tsDll: TTabSheet
       Caption = 'tsDll'
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object imgDllFormBack: TImage
         Left = 0
         Top = 0
@@ -309,7 +350,7 @@ object frmPBox: TfrmPBox
     ColorDepth = cd32Bit
     Height = 32
     Width = 32
-    Left = 208
-    Top = 196
+    Left = 112
+    Top = 148
   end
 end
