@@ -1014,7 +1014,10 @@ begin
     arrInt[I] := mmMainMenu.Items.Items[I].Count;
   end;
   intCount := MaxIntValue(arrInt);
-  Result   := (45 + IfThen(intCount mod 3 = 0, 0, 1)) * intCount div 3;
+  if intCount mod 3 = 0 then
+    Result := 35 * (0 + intCount div 3)
+  else
+    Result := 35 * (1 + intCount div 3);
 end;
 
 procedure TfrmPBox.ChangeUI_List(const bActivePage: Boolean = True);

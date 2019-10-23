@@ -36,8 +36,6 @@ object frmPBox: TfrmPBox
     ParentCtl3D = False
     ShowCaption = False
     TabOrder = 0
-    ExplicitTop = 625
-    ExplicitWidth = 1004
     object pnlInfo: TPanel
       Left = 562
       Top = 0
@@ -54,7 +52,6 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 0
-      ExplicitLeft = 439
       object lblInfo: TLabel
         Left = 4
         Top = 4
@@ -92,7 +89,6 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 1
-      ExplicitLeft = 780
       object lblTime: TLabel
         Left = 8
         Top = 4
@@ -122,7 +118,6 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 2
-      ExplicitLeft = 652
       object lblIP: TLabel
         Left = 4
         Top = 4
@@ -160,7 +155,6 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 3
-      ExplicitLeft = 226
       object lblDownUp: TLabel
         Left = 4
         Top = 4
@@ -196,7 +190,6 @@ object frmPBox: TfrmPBox
         MinHeight = 24
         Width = 1121
       end>
-    ExplicitWidth = 1004
     object tlbPModule: TToolBar
       Left = 11
       Top = 0
@@ -223,12 +216,8 @@ object frmPBox: TfrmPBox
     ActivePage = tsButton
     Align = alClient
     TabOrder = 2
-    ExplicitWidth = 1004
-    ExplicitHeight = 597
     object tsButton: TTabSheet
       Caption = 'tsButton'
-      ExplicitWidth = 996
-      ExplicitHeight = 569
       object imgButtonBack: TImage
         Left = 0
         Top = 0
