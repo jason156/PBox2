@@ -3,7 +3,7 @@ unit uPBoxForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles, System.Math,
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles, System.Math, System.UITypes,
   Vcl.Graphics, Vcl.Controls, Vcl.Buttons, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin, Vcl.Imaging.jpeg, Vcl.Imaging.pngimage,
   uCommon, uBaseForm, HookUtils, uCreateDelphiDll, uCreateVCDialogDll, uCreateEXE;
 
@@ -93,7 +93,7 @@ type
     { 按钮式 }
     procedure ChangeUI_Button;
     { 列表式 }
-    procedure ChangeUI_List;
+    procedure ChangeUI_List(const bActivePage: Boolean = True);
     { 参数置空，恢复默认值 }
     procedure FillParamBlank;
     { }
@@ -102,6 +102,14 @@ type
     procedure CreateSubModulesFormDialog(const strPModuleName: string); overload;
     procedure CreateSubModulesFormDialog(const mmItem: TMenuItem); overload;
     procedure OnSubModuleButtonClick(Sender: TObject);
+    procedure FreeListViewSubModule;
+    procedure ResizeListViewSubModule;
+    { 分栏式显示时，当鼠标进入 label 时 }
+    procedure OnSubModuleMouseEnter(Sender: TObject);
+    { 分栏式显示时，当鼠标离开 label 时 }
+    procedure OnSubModuleMouseLeave(Sender: TObject);
+    procedure OnSubModuleListClick(Sender: TObject);
+    function GetMaxInstance: Integer;
   protected
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
     procedure WMCREATENEWDLLFORM(var msg: TMessage); message WM_CREATENEWDLLFORM;
@@ -149,9 +157,9 @@ begin
     g_strCreateDllFileName := '';
     lblInfo.Caption        := '';
     if FUIShowStyle = ssButton then
-    begin
-      rzpgcntrlAll.ActivePage := tsButton;
-    end;
+      rzpgcntrlAll.ActivePageIndex := 0
+    else if FUIShowStyle = ssList then
+      rzpgcntrlAll.ActivePageIndex := 1;
   end;
 end;
 
@@ -689,8 +697,16 @@ begin
   { 更改 Dll 窗体大小 }
   EnumChildWindows(Handle, @EnumChildFunc, tsDll.Handle);
 
-  pnlModuleDialog.Top  := clbrPModule.Height + (pnlModuleDialog.Parent.Height - pnlModuleDialog.Height) div 2 - 60;
-  pnlModuleDialog.Left := (pnlModuleDialog.Parent.Width - pnlModuleDialog.Width) div 2;
+  if FUIShowStyle = ssButton then
+  begin
+    pnlModuleDialog.Top  := clbrPModule.Height + (pnlModuleDialog.Parent.Height - pnlModuleDialog.Height) div 2 - 60;
+    pnlModuleDialog.Left := (pnlModuleDialog.Parent.Width - pnlModuleDialog.Width) div 2;
+  end;
+
+  if FUIShowStyle = ssList then
+  begin
+    ResizeListViewSubModule;
+  end;
 end;
 
 procedure TfrmPBox.mniTrayShowFormClick(Sender: TObject);
@@ -913,10 +929,170 @@ begin
   clbrPModule.Visible := True;
 end;
 
-{ 列表式 }
-procedure TfrmPBox.ChangeUI_List;
-begin
+{ ------------------------------------------------------------------------------- 列表式 ------------------------------------------------------------------------------- }
 
+{ 分栏式显示时，当鼠标进入 label 时 }
+procedure TfrmPBox.OnSubModuleMouseEnter(Sender: TObject);
+begin
+  TLabel(Sender).Font.Color := RGB(0, 0, 255);
+  TLabel(Sender).Font.Style := TLabel(Sender).Font.Style + [fsUnderline];
+end;
+
+{ 分栏式显示时，当鼠标离开 label 时 }
+procedure TfrmPBox.OnSubModuleMouseLeave(Sender: TObject);
+begin
+  TLabel(Sender).Font.Color := RGB(51, 153, 255);
+  TLabel(Sender).Font.Style := TLabel(Sender).Font.Style - [fsUnderline];
+end;
+
+procedure TfrmPBox.OnSubModuleListClick(Sender: TObject);
+var
+  intTag: Integer;
+  I, J  : Integer;
+  mmItem: TMenuItem;
+begin
+  mmItem := nil;
+  intTag := TLabel(Sender).Tag;
+  for I  := 0 to mmMainMenu.Items.Count - 1 do
+  begin
+    for J := 0 to mmMainMenu.Items.Items[I].Count - 1 do
+    begin
+      if mmMainMenu.Items.Items[I].Items[J].Tag = intTag then
+      begin
+        mmItem := mmMainMenu.Items.Items[I].Items[J];
+        Break;
+      end;
+    end;
+  end;
+
+  if mmItem <> nil then
+    OnMenuItemClick(mmItem);
+end;
+
+{ 销毁分栏式界面 }
+procedure TfrmPBox.FreeListViewSubModule;
+var
+  I: Integer;
+begin
+  for I := tsList.ComponentCount - 1 downto 0 do
+  begin
+    if tsList.Components[I] is TLabel then
+    begin
+      TLabel(tsList.Components[I]).Free;
+    end
+    else if tsList.Components[I] is TImage then
+    begin
+      if TImage(tsList.Components[I]).Name = '' then
+      begin
+        TImage(tsList.Components[I]).Free;
+      end;
+    end;
+  end;
+end;
+
+procedure TfrmPBox.ResizeListViewSubModule;
+begin
+  if FUIShowStyle = ssList then
+  begin
+    { 销毁分栏式界面 }
+    FreeListViewSubModule;
+
+    { 重新创建分栏式显示界面 }
+    ChangeUI_List(False);
+  end;
+end;
+
+function TfrmPBox.GetMaxInstance: Integer;
+var
+  intCount: Integer;
+  arrInt  : array of Integer;
+  I       : Integer;
+begin
+  SetLength(arrInt, mmMainMenu.Items.Count);
+  for I := 0 to mmMainMenu.Items.Count - 1 do
+  begin
+    arrInt[I] := mmMainMenu.Items.Items[I].Count;
+  end;
+  intCount := MaxIntValue(arrInt);
+  Result   := (45 + IfThen(intCount mod 3 = 0, 0, 1)) * intCount div 3;
+end;
+
+procedure TfrmPBox.ChangeUI_List(const bActivePage: Boolean = True);
+var
+  I                     : Integer;
+  arrParentModuleLabel  : array of TLabel;
+  arrParentModuleImage  : array of TImage;
+  arrSubModuleLabel     : array of array of TLabel;
+  intRow                : Integer;
+  strPModuleIconFileName: string;
+  strPModuleIconFilePath: string;
+  J                     : Integer;
+begin
+  clbrPModule.Visible := False;
+  if bActivePage then
+    rzpgcntrlAll.ActivePage := tsList;
+  intRow                    := IfThen(WindowState = wsMaximized, 5, 3);
+  SetLength(arrParentModuleLabel, mmMainMenu.Items.Count);
+  SetLength(arrParentModuleImage, mmMainMenu.Items.Count);
+  SetLength(arrSubModuleLabel, mmMainMenu.Items.Count);
+
+  for I := 0 to mmMainMenu.Items.Count - 1 do
+  begin
+    SetLength(arrSubModuleLabel[I], mmMainMenu.Items[I].Count);
+  end;
+
+  for I := 0 to mmMainMenu.Items.Count - 1 do
+  begin
+    { 创建父模块文本 }
+    arrParentModuleLabel[I]            := TLabel.Create(tsList);
+    arrParentModuleLabel[I].Parent     := tsList;
+    arrParentModuleLabel[I].Caption    := mmMainMenu.Items[I].Caption;
+    arrParentModuleLabel[I].Font.Name  := '宋体';
+    arrParentModuleLabel[I].Font.Size  := 16;
+    arrParentModuleLabel[I].Font.Style := [fsBold];
+    arrParentModuleLabel[I].Font.Color := RGB(0, 174, 29);
+    arrParentModuleLabel[I].Left       := 40 + 400 * (I mod intRow);
+    arrParentModuleLabel[I].Top        := 10 + GetMaxInstance * (I div intRow);
+
+    { 创建父模块图标 }
+    arrParentModuleImage[I]         := TImage.Create(tsList);
+    arrParentModuleImage[I].Parent  := tsList;
+    arrParentModuleImage[I].Height  := 32;
+    arrParentModuleImage[I].Width   := 32;
+    arrParentModuleImage[I].Stretch := True;
+    arrParentModuleImage[I].Left    := arrParentModuleLabel[I].Left - 40;
+    arrParentModuleImage[I].Top     := arrParentModuleLabel[I].Top - 5;
+    with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+    begin
+      strPModuleIconFilePath := ReadString(c_strIniModuleSection, arrParentModuleLabel[I].Caption + '_ICON', '');
+      strPModuleIconFileName := ExtractFilePath(ParamStr(0)) + 'plugins\icon\' + strPModuleIconFilePath;
+      Free;
+    end;
+    if FileExists(strPModuleIconFileName) then
+      arrParentModuleImage[I].Picture.LoadFromFile(strPModuleIconFileName);
+
+    { 创建子模块文本 }
+    for J := 0 to Length(arrSubModuleLabel[I]) - 1 do
+    begin
+      arrSubModuleLabel[I, J]            := TLabel.Create(tsList);
+      arrSubModuleLabel[I, J].Parent     := tsList;
+      arrSubModuleLabel[I, J].Caption    := mmMainMenu.Items[I].Items[J].Caption;
+      arrSubModuleLabel[I, J].Font.Name  := '宋体';
+      arrSubModuleLabel[I, J].Font.Size  := 12;
+      arrSubModuleLabel[I, J].Font.Style := [fsBold];
+      arrSubModuleLabel[I, J].Font.Color := RGB(51, 153, 255);
+      arrSubModuleLabel[I, J].Cursor     := crHandPoint;
+      if J mod 3 = 0 then
+        arrSubModuleLabel[I, J].Left := arrParentModuleLabel[I].Left + 2
+      else
+        arrSubModuleLabel[I, J].Left       := arrSubModuleLabel[I, J - 1].Left + arrSubModuleLabel[I, J - 1].Width + 10;
+      arrSubModuleLabel[I, J].Top          := arrParentModuleLabel[I].Top + 24 + 20 * (J div 3);
+      arrSubModuleLabel[I, J].Tag          := mmMainMenu.Items[I].Items[J].Tag;
+      arrSubModuleLabel[I, J].OnMouseEnter := OnSubModuleMouseEnter;
+      arrSubModuleLabel[I, J].OnMouseLeave := OnSubModuleMouseLeave;
+      arrSubModuleLabel[I, J].OnClick      := OnSubModuleListClick;
+    end;
+  end;
 end;
 
 end.

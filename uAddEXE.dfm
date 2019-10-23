@@ -121,7 +121,6 @@ object frmAddEXE: TfrmAddEXE
     Top = 48
     Width = 275
     Height = 23
-    Enabled = False
     Font.Charset = GB2312_CHARSET
     Font.Color = clWindowText
     Font.Height = -15

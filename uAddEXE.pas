@@ -32,13 +32,13 @@ type
     { Public declarations }
   end;
 
-function ShowAddEXEForm(const strPModuleName: String; var strSModuleName, strFormClassName, strFormTitleName, strEXEFileName: String): Boolean;
+function ShowAddEXEForm(var strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strEXEFileName: String): Boolean;
 
 implementation
 
 {$R *.dfm}
 
-function ShowAddEXEForm(const strPModuleName: String; var strSModuleName, strFormClassName, strFormTitleName, strEXEFileName: String): Boolean;
+function ShowAddEXEForm(var strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strEXEFileName: String): Boolean;
 begin
   with TfrmAddEXE.Create(nil) do
   begin
@@ -49,6 +49,7 @@ begin
     Result := FbResult;
     if Result then
     begin
+      strPModuleName   := FstrPModuleName;
       strSModuleName   := FstrSModuleName;
       strFormClassName := FstrFormClassName;
       strFormTitleName := FstrFormTitleName;

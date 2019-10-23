@@ -2,8 +2,8 @@ object frmPBox: TfrmPBox
   Left = 0
   Top = 0
   Caption = 'PBox '#24037#20855#31665' v2.0'
-  ClientHeight = 650
-  ClientWidth = 1004
+  ClientHeight = 723
+  ClientWidth = 1127
   Color = clBtnFace
   Constraints.MinHeight = 649
   Constraints.MinWidth = 1020
@@ -24,8 +24,8 @@ object frmPBox: TfrmPBox
   TextHeight = 13
   object pnlBottom: TPanel
     Left = 0
-    Top = 625
-    Width = 1004
+    Top = 698
+    Width = 1127
     Height = 25
     Align = alBottom
     BevelOuter = bvNone
@@ -36,8 +36,10 @@ object frmPBox: TfrmPBox
     ParentCtl3D = False
     ShowCaption = False
     TabOrder = 0
+    ExplicitTop = 625
+    ExplicitWidth = 1004
     object pnlInfo: TPanel
-      Left = 439
+      Left = 562
       Top = 0
       Width = 213
       Height = 25
@@ -52,6 +54,7 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 0
+      ExplicitLeft = 439
       object lblInfo: TLabel
         Left = 4
         Top = 4
@@ -74,7 +77,7 @@ object frmPBox: TfrmPBox
       end
     end
     object pnlTime: TPanel
-      Left = 780
+      Left = 903
       Top = 0
       Width = 224
       Height = 25
@@ -89,6 +92,7 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 1
+      ExplicitLeft = 780
       object lblTime: TLabel
         Left = 8
         Top = 4
@@ -103,7 +107,7 @@ object frmPBox: TfrmPBox
       end
     end
     object pnlIP: TPanel
-      Left = 652
+      Left = 775
       Top = 0
       Width = 128
       Height = 25
@@ -118,6 +122,7 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 2
+      ExplicitLeft = 652
       object lblIP: TLabel
         Left = 4
         Top = 4
@@ -140,7 +145,7 @@ object frmPBox: TfrmPBox
       end
     end
     object pnlDownUp: TPanel
-      Left = 226
+      Left = 349
       Top = 0
       Width = 213
       Height = 25
@@ -155,6 +160,7 @@ object frmPBox: TfrmPBox
       ParentFont = False
       ShowCaption = False
       TabOrder = 3
+      ExplicitLeft = 226
       object lblDownUp: TLabel
         Left = 4
         Top = 4
@@ -180,7 +186,7 @@ object frmPBox: TfrmPBox
   object clbrPModule: TCoolBar
     Left = 0
     Top = 0
-    Width = 1004
+    Width = 1127
     Height = 28
     AutoSize = True
     Bands = <
@@ -188,12 +194,13 @@ object frmPBox: TfrmPBox
         Control = tlbPModule
         ImageIndex = -1
         MinHeight = 24
-        Width = 998
+        Width = 1121
       end>
+    ExplicitWidth = 1004
     object tlbPModule: TToolBar
       Left = 11
       Top = 0
-      Width = 989
+      Width = 1112
       Height = 24
       ButtonHeight = 24
       ButtonWidth = 43
@@ -211,18 +218,22 @@ object frmPBox: TfrmPBox
   object rzpgcntrlAll: TPageControl
     Left = 0
     Top = 28
-    Width = 1004
-    Height = 597
+    Width = 1127
+    Height = 670
     ActivePage = tsButton
     Align = alClient
     TabOrder = 2
+    ExplicitWidth = 1004
+    ExplicitHeight = 597
     object tsButton: TTabSheet
       Caption = 'tsButton'
+      ExplicitWidth = 996
+      ExplicitHeight = 569
       object imgButtonBack: TImage
         Left = 0
         Top = 0
-        Width = 996
-        Height = 569
+        Width = 1119
+        Height = 642
         Align = alClient
         Stretch = True
         ExplicitLeft = 272
@@ -260,7 +271,6 @@ object frmPBox: TfrmPBox
           ParentBackground = False
           ParentFont = False
           TabOrder = 0
-          ExplicitWidth = 650
           DesignSize = (
             653
             38)
@@ -282,6 +292,10 @@ object frmPBox: TfrmPBox
     end
     object tsList: TTabSheet
       Caption = 'tsList'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object imgListBack: TImage
         Left = 0
         Top = 0
@@ -297,6 +311,10 @@ object frmPBox: TfrmPBox
     end
     object tsDll: TTabSheet
       Caption = 'tsDll'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object imgDllFormBack: TImage
         Left = 0
         Top = 0

@@ -136,9 +136,9 @@ begin
         g_strCreateDllFileName := '';
         lblInfo.Caption        := '';
         if g_UIShowStyle = ssButton then
-        begin
-          g_Page.ActivePageIndex := 0;
-        end;
+          g_Page.ActivePageIndex := 0
+        else if g_UIShowStyle = ssList then
+          g_Page.ActivePageIndex := 1;
       end
       else
       begin

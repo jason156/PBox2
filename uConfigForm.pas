@@ -141,13 +141,10 @@ var
   strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strExeFileName: string;
 begin
   if lstParentModule.ItemIndex = -1 then
-  begin
-    MessageBox(Handle, '必须选择一个父模块', '系统提示：', MB_OK or MB_ICONERROR);
-    lstParentModule.SetFocus;
-    Exit;
-  end;
+    strPModuleName := ''
+  else
+    strPModuleName := lstParentModule.Items.Strings[lstParentModule.ItemIndex];
 
-  strPModuleName := lstParentModule.Items.Strings[lstParentModule.ItemIndex];
   if ShowAddEXEForm(strPModuleName, strSModuleName, strFormClassName, strFormTitleName, strExeFileName) then
   begin
     FmemIni.WriteString('EXE', strExeFileName, Format('%s;%s;%s;%s', [strPModuleName, strSModuleName, strFormClassName, strFormTitleName]));

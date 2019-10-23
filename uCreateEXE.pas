@@ -62,9 +62,9 @@ begin
     end;
 
     if g_UIShowStyle = ssButton then
-    begin
-      g_PageControl.ActivePageIndex := 0;
-    end;
+      g_PageControl.ActivePageIndex := 0
+    else if g_UIShowStyle = ssList then
+      g_PageControl.ActivePageIndex := 1;
 
     KillTimer(Application.MainForm.Handle, $2000);
   end;
