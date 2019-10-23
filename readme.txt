@@ -25,7 +25,7 @@
 三：输出函数说明
   DLL 输出函数参数说明：
     frm                 ：Delphi 专用。 Delphi 中 DLL 主窗体类名；VC 置空；
-    ft                  ：本 DLL 的类型； 支持：DelphiDll, VCDialogDll, VCMFCDll, QTDll, ftEXE；
+    ft                  ：本 DLL 的类型； 支持：DelphiDll, VCDialogDll, VCMFCDll, QTDll, EXE；
     strParentModuleName ：父模块名称；
     strSubModuleName    ：子模块名称；
     strClassName        ：VC 专用；VC DLL 主窗体类名；    Delphi 置空；
