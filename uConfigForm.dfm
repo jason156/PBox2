@@ -404,6 +404,7 @@ object frmConfig: TfrmConfig
     Width = 165
     Height = 18
     Caption = #26174#31034'Dll'#31383#20307#20851#38381#25353#38062
+    Enabled = False
     Font.Charset = GB2312_CHARSET
     Font.Color = clWindowText
     Font.Height = -15
