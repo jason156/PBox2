@@ -1,45 +1,46 @@
-һ��������ּ
-  PBox ��һ������ DLL ��ģ�黯����ƽ̨��
-  ���ž������޸�ԭ�й���Դ�����ԭ��
-  Delphi10.3��WIN10X64 �¿�����
-  WIN7X64��WIN10X64�²���ͨ����
+一：开发宗旨
+  PBox 是一个基于 DLL 的模块化开发平台。
+  本着尽量少修改原有工程源代码的原则。
+  Delphi10.3、WIN10X64 下开发。
+  WIN7X64、WIN10X64下测试通过。
+  dbyoung@sina.com
+  QQ群:101611228
 
 
-����ʹ�÷���
-  1��Delphi ԭ�����ļ����޸�Ϊ DLL ���̡�����ض������Ϳ����ˡ��ѱ����� DLL �ļ����õ� plugins Ŀ¼�¾Ϳ����ˡ�
-  ʾ����Module\SysSPath
-  Delphi ����������
+二：使用方法
+  1：Delphi 原工程文件，修改为 DLL 工程。输出特定函数就可以了。把编译后的 DLL 文件放置到 plugins 目录下就可以了。
+  示例：Module\SysSPath
+  Delphi 函数声明：
     type
-      { ֧�ֵ��ļ����� }
+      { 支持的文件类型 }
       TSPFileType = (ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE);
+      procedure db_ShowDllForm_Plugins(var frm: TFormClass; var ft: TSPFileType; var strParentModuleName, strSubModuleName, strClassName, strWindowName, strIconFileName: PAnsiChar; const bShow: Boolean = True); stdcall;
 
-    procedure db_ShowDllForm_Plugins(var frm: TFormClass; var ft: TSPFileType; var strParentModuleName, strSubModuleName, strClassName, strWindowName, strIconFileName: PAnsiChar; const bShow: Boolean = True); stdcall;
-
-  2��VC ԭ���̱��ֲ��䣬����õ� EXE�� �½�һ�� .CPP �ļ������룬��ԭ���ı��� EXE ������ OBJ �ļ����������ӣ��õ� DLL �ļ������õ� plugins Ŀ¼�¾Ϳ����ˡ�
-  ʾ��1��DOC\VC\Dialog\7zip
-  ʾ��2��DOC\VC\Dialog\Notepad2
-  VC ����������
+  2：VC 原工程保持不变，编译得到 EXE。 新建一个 .CPP 文件，编译，和原来的编译 EXE 产生的 OBJ 文件，进行连接，得到 DLL 文件，放置到 plugins 目录下就可以了。
+  示例1：DOC\VC\Dialog\7zip
+  示例2：DOC\VC\Dialog\Notepad2
+  VC 函数声明：
     enum TSPFileType {ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE};
     extern "C" __declspec(dllexport) void db_ShowDllForm_Plugins(void** frm, TSPFileType* spFileType, char** strParentModuleName, char** strSubModuleName, char** strClassName, char** strWindowName, char** strIconFileName, const bool show = true)
 
 
-�����������˵��
-  DLL �����������˵����
-    frm                 ��Delphi ר�á� Delphi �� DLL ������������VC �ÿգ�
-    ft                  ���� DLL �����ͣ� ֧�֣�DelphiDll, VCDialogDll, VCMFCDll, QTDll, ftEXE��
-    strParentModuleName ����ģ�����ƣ�
-    strSubModuleName    ����ģ�����ƣ�
-    strClassName        ��VC ר�ã�VC DLL ������������    Delphi �ÿգ�
-    strWindowName       ��VC ר�ã�VC DLL ������������ƣ�Delphi �ÿգ�
-    strIconFileName     ��ͼ���ļ�����Ϊ�գ��������У�ѡ��ͼ�ꣻ
-    bShow               ���Ƿ���ʾ����һ�ε��� VC DLL ʱ���ǲ��ô������� DLL ����ģ�ֻ��Ϊ�˻�ȡ������
+三：输出函数说明
+  DLL 输出函数参数说明：
+    frm                 ：Delphi 专用。 Delphi 中 DLL 主窗体类名；VC 置空；
+    ft                  ：本 DLL 的类型； 支持：DelphiDll, VCDialogDll, VCMFCDll, QTDll, EXE；
+    strParentModuleName ：父模块名称；
+    strSubModuleName    ：子模块名称；
+    strClassName        ：VC 专用；VC DLL 主窗体类名；    Delphi 置空；
+    strWindowName       ：VC 专用；VC DLL 主窗体标题名称；Delphi 置空；
+    strIconFileName     ：图标文件；可为空，在配置中，选择图标；
+    bShow               ：是否显示；第一次调用 VC DLL 时，是不用创建创建 DLL 窗体的，只是为了获取参数。
   
   
-�ģ���ɫ����
-  ����֧�֣��˵���ʽ��ʾ����ť���Ի��򣩷�ʽ��ʾ���б��ӷ�ʽ��ʾ��
-  PBox ��֧�ֽ�һ�� EXE ��ʾ�ڴ����С�
+四：特色功能
+  界面支持，菜单方式显示、按钮（对话框）方式显示、列表视方式显示。
+  PBox 还支持将一个 EXE 显示在窗体中。x86可以执行x64 EXE, X64 可以执行X86 EXE.妙哉妙哉！
 
 
-�壺������������
-  �������ݿ�֧�֣����ڱ��˶����ݿⲻ��Ϥ�����Կ���������
-  ���� VC(MFC)/QT DLL �����֧�֣�
+五：接下来工作：
+  1、添加数据库支持（由于本人对数据库不熟悉，所以开发较慢，又是业余时间开发）
+  2、添加 VC(MFC) / QT DLL 窗体的支持；
