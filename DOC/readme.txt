@@ -8,7 +8,7 @@
 
 
 二：使用方法
-  1：Delphi 原工程文件，修改为 DLL 工程。输出特定函数就可以了。把编译后的 DLL 文件放置到 plugins 目录下就可以了。
+  1：Delphi 原 EXE 工程文件，修改为 DLL 工程。输出特定函数就可以了。把编译后的 DLL 文件放置到 plugins 目录下就可以了。
   示例：Module\SysSPath
   Delphi 函数声明：
     type
@@ -16,7 +16,7 @@
       TSPFileType = (ftDelphiDll, ftVCDialogDll, ftVCMFCDll, ftQTDll, ftEXE);
       procedure db_ShowDllForm_Plugins(var frm: TFormClass; var ft: TSPFileType; var strParentModuleName, strSubModuleName, strClassName, strWindowName, strIconFileName: PAnsiChar; const bShow: Boolean = True); stdcall;
 
-  2：VC 原工程保持不变，编译得到 EXE。 新建一个 .CPP 文件，编译，和原来的编译 EXE 产生的 OBJ 文件，进行连接，得到 DLL 文件，放置到 plugins 目录下就可以了。
+  2：VC 原 EXE 工程保持不变，编译得到 EXE。复制产生的 OBJ 文件。 新建一个 .CPP 文件，编译，和原来的编译 EXE 产生的 OBJ 文件，进行连接，得到 DLL 文件，放置到 plugins 目录下就可以了。
   示例1：DOC\VC\Dialog\7zip
   示例2：DOC\VC\Dialog\Notepad2
   VC 函数声明：
@@ -32,13 +32,13 @@
     strSubModuleName    ：子模块名称；
     strClassName        ：VC 专用；VC DLL 主窗体类名；    Delphi 置空；
     strWindowName       ：VC 专用；VC DLL 主窗体标题名称；Delphi 置空；
-    strIconFileName     ：图标文件；可为空，在配置中，选择图标；
-    bShow               ：是否显示；第一次调用 VC DLL 时，是不用创建创建 DLL 窗体的，只是为了获取参数。
+    strIconFileName     ：图标文件；可为空，在 PBox 配置中，选择图标；
+    bShow               ：是否显示；第一次调用 VC DLL 时，是不用创建 DLL 窗体的，只是为了获取参数。
   
   
 四：特色功能
   界面支持，菜单方式显示、按钮（对话框）方式显示、列表视方式显示。
-  PBox 还支持将一个 EXE 显示在窗体中。x86可以执行x64 EXE, X64 可以执行X86 EXE.妙哉妙哉！
+  PBox 还支持将一个 EXE 显示在窗体中。PBox x86可以执行x64 EXE, PBox X64 可以执行X86 EXE.妙哉妙哉！
 
 
 五：接下来工作：
