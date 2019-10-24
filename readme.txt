@@ -3,6 +3,8 @@
   本着尽量少修改原有工程源代码的原则。
   Delphi10.3、WIN10X64 下开发。
   WIN7X64、WIN10X64下测试通过。
+  dbyoung@sina.com
+  QQ群:101611228
 
 
 二：使用方法
