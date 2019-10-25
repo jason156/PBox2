@@ -1,6 +1,6 @@
 PBox 是一个基于 Dll 动态库窗体的模块化开发平台；
 
-- [English](ReadMe-EN.md)
+- [English](readme-EN.md)
 
 一：开发宗旨
     PBox 是一个基于 Dll 动态库窗体的模块化开发平台；
