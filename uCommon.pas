@@ -2,7 +2,7 @@ unit uCommon;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, IdIPWatch;
+uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch, FlyUtils.CnXXX.Common, FlyUtils.AES;
 
 type
   { 界面显示方式：菜单、按钮对话框、列表 }
@@ -35,6 +35,7 @@ const
   c_strIniUISection                           = 'UI';
   c_strIniFormStyleSection                    = 'FormStyle';
   c_strIniModuleSection                       = 'Module';
+  c_strIniDBSection                           = 'DB';
   c_strMsgTitle: PChar                        = '系统提示：';
   c_strAESKey                                 = 'dbyoung@sina.com';
   c_strDllExportName                          = 'db_ShowDllForm_Plugins';
@@ -60,6 +61,27 @@ procedure SortModuleList(var lstModuleList: THashedStringList);
 procedure SearchPlugInsDllFile(var lstDll: TStringList);
 
 function GetShowStyle: TShowStyle;
+
+{ 执行 Sql 脚本 }
+function ExeSql(const strFileName: string; ADOCNN: TADOConnection): Boolean;
+
+{ 获取数据库库名 }
+function GetDBLibraryName(const strLinkDB: string): String;
+
+{ 获取本机当前登录用户名称 }
+function GetCurrentLoginUserName: String;
+
+{ 备份数据库，支持远程备份 }
+function BackupDataBase(ADOCNN: TADOConnection; const strNativePCLoginName, strNativePCLoginPassword: String; const strSaveFileName: String): Boolean;
+
+{ 恢复数据库，支持远程恢复 }
+function RestoreDataBase(ADOCNN: TADOConnection; const strNativePCLoginName, strNativePCLoginPassword: String; const strDBFileName: String; var strErr: String): Boolean;
+
+{ 加密字符串 }
+function EncryptString(const strTemp, strKey: string): String;
+
+{ 解密字符串 }
+function DecryptString(const strTemp, strKey: string): String;
 
 var
   g_intVCDialogDllFormHandle: THandle = 0;
@@ -316,6 +338,190 @@ begin
     Result := TShowStyle(ReadInteger(c_strIniFormStyleSection, 'index', 0) mod 3);
     Free;
   end;
+end;
+
+{ 执行 Sql 脚本 }
+function ExeSql(const strFileName: string; ADOCNN: TADOConnection): Boolean;
+var
+  strTemp   : String;
+  I         : Integer;
+  ADOtrigger: TADOQuery;
+begin
+  Result := True;
+
+  try
+    with TStringList.Create do
+    begin
+      ADOtrigger := TADOQuery.Create(nil);
+      try
+        ADOtrigger.Connection := ADOCNN;
+        LoadFromFile(strFileName);
+        strTemp := '';
+        for I   := 0 to Count - 1 do
+        begin
+          if SameText(Trim(Strings[I]), 'GO') then
+          begin
+            ADOtrigger.Close;
+            ADOtrigger.SQL.Clear;
+            ADOtrigger.SQL.Text := strTemp;
+            ADOtrigger.ExecSQL;
+            strTemp := '';
+          end
+          else
+          begin
+            strTemp := strTemp + Strings[I] + #13#10;
+          end;
+        end;
+
+        if strTemp <> '' then
+        begin
+          ADOtrigger.Close;
+          ADOtrigger.SQL.Clear;
+          ADOtrigger.SQL.Text := strTemp;
+          ADOtrigger.ExecSQL;
+        end;
+      finally
+        ADOtrigger.Free;
+        Free;
+      end;
+    end;
+  except
+    Result := False;
+  end;
+end;
+
+{ 获取数据库库名 }
+function GetDBLibraryName(const strLinkDB: string): String;
+var
+  I, J   : Integer;
+  strTemp: String;
+begin
+  Result := '';
+  I      := Pos('initial catalog=', LowerCase(strLinkDB));
+  if I > 0 then
+  begin
+    strTemp := RightStr(strLinkDB, Length(strLinkDB) - I - Length('Initial Catalog=') + 1);
+    J       := Pos(';', strTemp);
+    Result  := LeftStr(strTemp, J - 1);
+  end;
+end;
+
+{ 获取本机当前登录用户名称 }
+function GetCurrentLoginUserName: String;
+var
+  Buffer: array [0 .. 255] of Char;
+  Count : Cardinal;
+begin
+  Result := '';
+  Count  := 256;
+  if GetUserName(Buffer, Count) then
+  begin
+    Result := Buffer;
+  end;
+end;
+
+{ 获取本机计算机名称 }
+function GetNativePCName: string;
+var
+  chrPCName: array [0 .. 255] of Char;
+  intLen   : Cardinal;
+begin
+  intLen := 256;
+  GetComputerName(@chrPCName[0], intLen);
+  Result := chrPCName;
+end;
+
+{ 备份数据库，支持远程备份 }
+function BackupDataBase(ADOCNN: TADOConnection; const strNativePCLoginName, strNativePCLoginPassword: String; const strSaveFileName: String): Boolean;
+const
+  c_strbackupDataBase =                                                    //
+    ' exec master..xp_cmdshell ''net use z: \\%s\c$ "%s" /user:%s\%s'' ' + //
+    ' backup database %s to disk = ''z:\temp.bak''' +                      //
+    ' exec master..xp_cmdshell ''net use z: /delete''';
+var
+  strDBLibraryName: string;
+  strNativePCName : string;
+begin
+  Result := False;
+  if not ADOCNN.Connected then
+    Exit;
+
+  strDBLibraryName := GetDBLibraryName(ADOCNN.ConnectionString);
+  strNativePCName  := GetNativePCName;
+
+  with TADOQuery.Create(nil) do
+  begin
+    Connection := ADOCNN;
+    SQL.Text   := Format(c_strbackupDataBase, [strNativePCName, strNativePCLoginPassword, strNativePCName, strNativePCLoginName, strDBLibraryName]);
+    try
+      DeleteFile('c:\temp.bak');
+      ExecSQL;
+      { 移动备份文件到指定位置 }
+      Result := MoveFile(PChar('c:\temp.bak'), PChar(strSaveFileName));
+    except
+      Result := False;
+    end;
+    Free;
+  end;
+end;
+
+{ 恢复数据库，支持远程恢复 }
+function RestoreDataBase(ADOCNN: TADOConnection; const strNativePCLoginName, strNativePCLoginPassword: String; const strDBFileName: String; var strErr: String): Boolean;
+const
+  c_strbackupDataBase =                                                    //
+    ' exec master..xp_cmdshell ''net use z: \\%s\c$ "%s" /user:%s\%s'' ' + //
+    ' restore database %s from disk = ''z:\temp.bak''' +                   //
+    ' exec master..xp_cmdshell ''net use z: /delete''';
+var
+  strDBLibraryName: String;
+  strNativePCName : String;
+begin
+  Result := False;
+
+  if not ADOCNN.Connected then
+    Exit;
+
+  { 删除临时文件 }
+  DeleteFile('c:\temp.bak');
+  strDBLibraryName := GetDBLibraryName(ADOCNN.ConnectionString);
+  strNativePCName  := GetNativePCName;
+
+  if Trim(strDBLibraryName) = '' then
+    strDBLibraryName := 'RestoreTemp';
+
+  { 复制文件到网络邻居目录中 }
+  if CopyFile(PChar(strDBFileName), PChar('c:\temp.bak'), True) then
+  begin
+    with TADOQuery.Create(nil) do
+    begin
+      Connection := ADOCNN;
+      SQL.Text   := Format(c_strbackupDataBase, [strNativePCName, strNativePCLoginPassword, strNativePCName, strNativePCLoginName, strDBLibraryName]);
+      try
+        ExecSQL;
+        Result := True;
+      except
+        on E: Exception do
+        begin
+          strErr := E.Message;
+          Result := False;
+        end;
+      end;
+      DeleteFile('c:\temp.bak');
+      Free;
+    end;
+  end;
+end;
+
+{ 加密字符串 }
+function EncryptString(const strTemp, strKey: string): String;
+begin
+  Result := AESEncryptStrToHex(strTemp, strKey, TEncoding.Unicode, TEncoding.UTF8, TKeyBit.kb256, '1234567890123456', TPaddingMode.pmPKCS5or7RandomPadding, True, rlCRLF, rlCRLF, nil);
+end;
+
+{ 解密字符串 }
+function DecryptString(const strTemp, strKey: string): String;
+begin
+  Result := AESDecryptStrFromHex(strTemp, strKey, TEncoding.Unicode, TEncoding.UTF8, TKeyBit.kb256, '1234567890123456', TPaddingMode.pmPKCS5or7RandomPadding, True, rlCRLF, rlCRLF, nil);
 end;
 
 end.
