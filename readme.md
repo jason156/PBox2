@@ -14,7 +14,7 @@ PBox 是一个基于 Dll 动态库窗体的模块化开发平台；
     向武哥（wr960204）、爱吃猪头肉、Flying Wang、刘啸（Liu Xiao）致谢；
     WIN7X64、WIN10X64下测试通过；
     dbyoung@sina.com
-   QQ群：101611228
+    QQ群：101611228
 
 
 三：使用方法
