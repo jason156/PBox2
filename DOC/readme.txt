@@ -30,15 +30,15 @@
                           支持：
                             ftDelphiDll   ：Delphi 语言编写的窗体 Dll；
                             ftVCDialogDll ：VC 语言使用 Dialog 方式编写的窗体 Dll；
-                            ftVCMFCDll    ：VC 语言使用 MFC 方式编写的窗体 Dll；
-                            ftQTDll       ：QT 语言编写的窗体 Dll； 
+                            ftVCMFCDll    ：VC 语言使用 MFC    方式编写的窗体 Dll；
+                            ftQTDll       ：QT 语言编写的窗体 Dll；                
                             ftEXE         ：带窗体的 EXE 文件；
     strParentModuleName ：父模块名称；
     strSubModuleName    ：子模块名称；
     strClassName        ：VC 专用；VC Dll 主窗体类名；  Delphi 置空；
     strWindowName       ：VC 专用；VC Dll 主窗体标题名；Delphi 置空；
     strIconFileName     ：图标文件；可为空，在 PBox 配置中，选择图标；
-    bShow               ：VC 专用；是否显示 Dll 窗体；第一次调用 VC Dll 时，是不用创建 Dll 窗体的，只是为了获取参数。
+    bShow               ：VC 专用；是否显示 Dll 窗体；第一次调用 VC Dll 时，是不用创建显示 Dll 窗体的，只是为了获取参数。
   
   
 四：特色功能
