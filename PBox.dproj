@@ -117,7 +117,6 @@
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Icon_MainIcon>02.ico</Icon_MainIcon>
-        <AppExecutionLevel>requireAdministrator</AppExecutionLevel>
         <DCC_Optimize>true</DCC_Optimize>
         <DCC_PentiumSafeDivide>true</DCC_PentiumSafeDivide>
     </PropertyGroup>

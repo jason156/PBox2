@@ -73,6 +73,7 @@ object frmConfig: TfrmConfig
     Font.Name = #23435#20307
     Font.Style = []
     ParentFont = False
+    Visible = False
     OnClick = btnDatabaseConfigClick
     ExplicitTop = 511
   end
