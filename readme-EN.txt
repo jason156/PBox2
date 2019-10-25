@@ -1,7 +1,5 @@
 PBox is a modular development platform based on DLL Dynamic Library form.  
 
-- [¼òÌåÖÐÎÄ](readme.md)
-
 I. development purpose  
    PBox is a modular development platform based on DLL Dynamic Library form.  
    Based on the principle of minimizing or not modifying the original project source code (including Delphi, VC, QT);  
