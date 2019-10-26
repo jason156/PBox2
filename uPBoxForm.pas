@@ -88,30 +88,37 @@ type
     procedure ReCreate;
     { 界面显示风格 }
     procedure ChangeUI;
-    { 菜单式 }
+    { 菜单式风格 }
     procedure ChangeUI_Menu;
-    { 按钮式 }
+    { 按钮式风格 }
     procedure ChangeUI_Button;
-    { 列表式 }
+    { 分栏式风格 }
     procedure ChangeUI_List(const bActivePage: Boolean = True);
     { 参数置空，恢复默认值 }
     procedure FillParamBlank;
-    { }
+    { 点击父模块时，动态创建子模块 }
     procedure OnParentModuleButtonClick(Sender: TObject);
     { 创建所有子模块对话框窗体 }
     procedure CreateSubModulesFormDialog(const strPModuleName: string); overload;
     procedure CreateSubModulesFormDialog(const mmItem: TMenuItem); overload;
+    { 列表显示风格，创建子模块 DLL 窗体 }
     procedure OnSubModuleButtonClick(Sender: TObject);
+    { 销毁分栏式界面 }
     procedure FreeListViewSubModule;
+    { 窗体大小改变时，重新创建分栏式的界面 }
     procedure ResizeListViewSubModule;
     { 分栏式显示时，当鼠标进入 label 时 }
     procedure OnSubModuleMouseEnter(Sender: TObject);
     { 分栏式显示时，当鼠标离开 label 时 }
     procedure OnSubModuleMouseLeave(Sender: TObject);
+    { 创建子模块 DLL 模块 }
     procedure OnSubModuleListClick(Sender: TObject);
-    function GetMaxInstance: Integer;
+    { 获取垂直位置间隔 }
+    function GetMaxInstance(const intCurrentIndex, intCount: Integer): Integer;
   protected
+    { 销毁上一次创建的 Dll 窗体 }
     procedure WMDESTORYPREDLLFORM(var msg: TMessage); message WM_DESTORYPREDLLFORM;
+    { 创建新的 DLL 窗体 }
     procedure WMCREATENEWDLLFORM(var msg: TMessage); message WM_CREATENEWDLLFORM;
   end;
 
@@ -163,6 +170,7 @@ begin
   end;
 end;
 
+{ 创建新的 DLL 窗体 }
 procedure TfrmPBox.WMCREATENEWDLLFORM(var msg: TMessage);
 var
   hDll                              : HMODULE;
@@ -729,11 +737,11 @@ begin
     ssButton:          //
       ChangeUI_Button; // 按钮式
     ssList:            //
-      ChangeUI_List;   // 列表式
+      ChangeUI_List;   // 分栏式
   end;
 end;
 
-{ ------------------------------------------------------------------------------- 菜单式 ------------------------------------------------------------------------------- }
+{ ------------------------------------------------------------------------------- 菜单式风格 ------------------------------------------------------------------------------- }
 procedure TfrmPBox.ChangeUI_Menu;
 begin
   tlbPModule.Menu      := mmMainMenu;
@@ -741,7 +749,7 @@ begin
   clbrPModule.Visible  := True;
 end;
 
-{ ------------------------------------------------------------------------------- 按钮式 ------------------------------------------------------------------------------- }
+{ ------------------------------------------------------------------------------- 按钮式风格 ------------------------------------------------------------------------------- }
 procedure TfrmPBox.imgSubModuleCloseClick(Sender: TObject);
 var
   I: Integer;
@@ -766,6 +774,7 @@ begin
   LoadButtonBmp(imgSubModuleClose, 'Close', 0);
 end;
 
+{ 列表显示风格，创建子模块 DLL 窗体 }
 procedure TfrmPBox.OnSubModuleButtonClick(Sender: TObject);
 var
   I, J         : Integer;
@@ -845,7 +854,7 @@ begin
     arrSB[I].Height     := c_intButtonHeight;
     arrSB[I].GroupIndex := 1;
     arrSB[I].Flat       := True;
-    arrSB[I].Top        := pnlModuleDialogTitle.Height + c_intMiniTop + (c_intCols + c_intVerSpace) * (I div c_intCols);
+    arrSB[I].Top        := pnlModuleDialogTitle.Height + c_intMiniTop + (c_intCols + c_intButtonHeight + c_intVerSpace) * (I div c_intCols);
     arrSB[I].Left       := c_intMiniLeft + (c_intButtonWidth + c_intHorSpace) * (I mod c_intCols);
     arrSB[I].Tag        := mmItem.Items[I].Tag;
     arrSB[I].OnClick    := OnSubModuleButtonClick;
@@ -869,6 +878,7 @@ begin
   end;
 end;
 
+{ 点击父模块时，动态创建子模块 }
 procedure TfrmPBox.OnParentModuleButtonClick(Sender: TObject);
 var
   I             : Integer;
@@ -929,7 +939,7 @@ begin
   clbrPModule.Visible := True;
 end;
 
-{ ------------------------------------------------------------------------------- 列表式 ------------------------------------------------------------------------------- }
+{ ------------------------------------------------------------------------------- 分栏式风格 ------------------------------------------------------------------------------- }
 
 { 分栏式显示时，当鼠标进入 label 时 }
 procedure TfrmPBox.OnSubModuleMouseEnter(Sender: TObject);
@@ -945,6 +955,7 @@ begin
   TLabel(Sender).Font.Style := TLabel(Sender).Font.Style - [fsUnderline];
 end;
 
+{ 创建子模块 DLL 模块 }
 procedure TfrmPBox.OnSubModuleListClick(Sender: TObject);
 var
   intTag: Integer;
@@ -990,6 +1001,7 @@ begin
   end;
 end;
 
+{ 窗体大小改变时，重新创建分栏式的界面 }
 procedure TfrmPBox.ResizeListViewSubModule;
 begin
   if FUIShowStyle = ssList then
@@ -1002,24 +1014,26 @@ begin
   end;
 end;
 
-function TfrmPBox.GetMaxInstance: Integer;
+{ 获取垂直位置间隔 }
+function TfrmPBox.GetMaxInstance(const intCurrentIndex, intCount: Integer): Integer;
 var
-  intCount: Integer;
-  arrInt  : array of Integer;
-  I       : Integer;
+  intMax: Integer;
+  arrInt: array of Integer;
+  I     : Integer;
 begin
   SetLength(arrInt, mmMainMenu.Items.Count);
   for I := 0 to mmMainMenu.Items.Count - 1 do
   begin
     arrInt[I] := mmMainMenu.Items.Items[I].Count;
   end;
-  intCount := MaxIntValue(arrInt);
-  if intCount mod 3 = 0 then
-    Result := 35 * (0 + intCount div 3)
+  intMax := MaxIntValue(arrInt);
+  if intMax mod 3 = 0 then
+    Result := 35 * (0 + intMax div 3)
   else
-    Result := 35 * (1 + intCount div 3);
+    Result := 35 * (1 + intMax div 3);
 end;
 
+{ 分栏式风格 }
 procedure TfrmPBox.ChangeUI_List(const bActivePage: Boolean = True);
 var
   I                     : Integer;
@@ -1038,7 +1052,6 @@ begin
   SetLength(arrParentModuleLabel, mmMainMenu.Items.Count);
   SetLength(arrParentModuleImage, mmMainMenu.Items.Count);
   SetLength(arrSubModuleLabel, mmMainMenu.Items.Count);
-
   for I := 0 to mmMainMenu.Items.Count - 1 do
   begin
     SetLength(arrSubModuleLabel[I], mmMainMenu.Items[I].Count);
@@ -1055,7 +1068,7 @@ begin
     arrParentModuleLabel[I].Font.Style := [fsBold];
     arrParentModuleLabel[I].Font.Color := RGB(0, 174, 29);
     arrParentModuleLabel[I].Left       := 40 + 400 * (I mod intRow);
-    arrParentModuleLabel[I].Top        := 10 + GetMaxInstance * (I div intRow);
+    arrParentModuleLabel[I].Top        := 10 + GetMaxInstance(I, intRow) * (I div intRow);
 
     { 创建父模块图标 }
     arrParentModuleImage[I]         := TImage.Create(tsList);
@@ -1069,10 +1082,10 @@ begin
     begin
       strPModuleIconFilePath := ReadString(c_strIniModuleSection, arrParentModuleLabel[I].Caption + '_ICON', '');
       strPModuleIconFileName := ExtractFilePath(ParamStr(0)) + 'plugins\icon\' + strPModuleIconFilePath;
+      if FileExists(strPModuleIconFileName) then
+        arrParentModuleImage[I].Picture.LoadFromFile(strPModuleIconFileName);
       Free;
     end;
-    if FileExists(strPModuleIconFileName) then
-      arrParentModuleImage[I].Picture.LoadFromFile(strPModuleIconFileName);
 
     { 创建子模块文本 }
     for J := 0 to Length(arrSubModuleLabel[I]) - 1 do
