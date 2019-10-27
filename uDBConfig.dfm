@@ -14,7 +14,6 @@ object DBConfig: TDBConfig
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
-  OnShow = FormShow
   DesignSize = (
     832
     495)
@@ -57,7 +56,8 @@ object DBConfig: TDBConfig
     Top = 8
     Width = 812
     Height = 437
-    ActivePage = tsCreateDBLink
+    ActivePage = ts3
+    MultiLine = True
     TabHeight = 35
     TabOrder = 2
     TabWidth = 89
@@ -202,9 +202,9 @@ object DBConfig: TDBConfig
       object lblTip: TLabel
         Left = 24
         Top = 160
-        Width = 554
+        Width = 708
         Height = 16
-        Caption = #37325#35201#65306#26412#26426#24517#39035#24320#21551#25991#20214#21644#25171#21360#26426#20849#20139#65292#36828#31243#26426#22120#24517#39035#20851#38381'360'#31561#23433#20840#36719#20214
+        Caption = #37325#35201#65306#26412#26426#24517#39035#24320#21551#25991#20214#21644#25171#21360#26426#20849#20139#65292#36828#31243#26426#22120'('#23433#35013#25968#25454#24211#30340#26426#22120')'#24517#39035#20851#38381'360'#31561#23433#20840#36719#20214
         Font.Charset = GB2312_CHARSET
         Font.Color = clRed
         Font.Height = -16
@@ -282,9 +282,9 @@ object DBConfig: TDBConfig
       object Label3: TLabel
         Left = 24
         Top = 160
-        Width = 554
+        Width = 708
         Height = 16
-        Caption = #37325#35201#65306#26412#26426#24517#39035#24320#21551#25991#20214#21644#25171#21360#26426#20849#20139#65292#36828#31243#26426#22120#24517#39035#20851#38381'360'#31561#23433#20840#36719#20214
+        Caption = #37325#35201#65306#26412#26426#24517#39035#24320#21551#25991#20214#21644#25171#21360#26426#20849#20139#65292#36828#31243#26426#22120'('#23433#35013#25968#25454#24211#30340#26426#22120')'#24517#39035#20851#38381'360'#31561#23433#20840#36719#20214
         Font.Charset = GB2312_CHARSET
         Font.Color = clRed
         Font.Height = -16
@@ -375,6 +375,7 @@ object DBConfig: TDBConfig
           Style = csDropDownList
           DropDownCount = 20
           TabOrder = 0
+          OnChange = cbbLoginTableChange
         end
         object cbbLoginName: TComboBox
           Left = 121
@@ -394,89 +395,35 @@ object DBConfig: TDBConfig
           DropDownCount = 20
           TabOrder = 2
         end
-        object chk1: TCheckBox
+        object chkPassword: TCheckBox
           Left = 16
           Top = 125
           Width = 129
           Height = 17
           Caption = #30331#24405#23494#30721#26159#23494#25991
           TabOrder = 3
+          OnClick = chkPasswordClick
         end
-        object pnlDesEnc: TPanel
+        object pnlPassword: TPanel
           Left = 35
           Top = 148
           Width = 730
-          Height = 197
+          Height = 205
           BevelOuter = bvNone
           BorderStyle = bsSingle
-          Caption = 'pnlDesEnc'
+          Caption = 'pnlPassword'
           Ctl3D = False
           ParentCtl3D = False
           ShowCaption = False
           TabOrder = 4
           Visible = False
-          object lbl4: TLabel
-            Left = 6
-            Top = 40
-            Width = 75
-            Height = 15
-            Caption = #35299#23494#23494#38053#65306
-            Font.Charset = GB2312_CHARSET
-            Font.Color = clRed
-            Font.Height = -15
-            Font.Name = #23435#20307
-            Font.Style = []
-            ParentFont = False
-          end
-          object lbl3: TLabel
-            Left = 6
-            Top = 12
-            Width = 75
-            Height = 15
-            Caption = #35299#23494#20989#25968#65306
-            Font.Charset = GB2312_CHARSET
-            Font.Color = clRed
-            Font.Height = -15
-            Font.Name = #23435#20307
-            Font.Style = []
-            ParentFont = False
-          end
-          object cbb3: TComboBox
-            Left = 85
-            Top = 7
-            Width = 272
-            Height = 23
-            Style = csDropDownList
-            TabOrder = 0
-            Items.Strings = (
-              'AES 128'
-              'AES 192'
-              'AES 256'
-              #33258#23450#20041)
-          end
-          object edt3: TEdit
-            Left = 85
-            Top = 36
-            Width = 272
-            Height = 21
-            TabOrder = 1
-          end
-          object btnTestAES: TButton
-            Left = 85
-            Top = 63
-            Width = 78
-            Height = 25
-            Caption = #27979#35797#35299#23494
-            TabOrder = 2
-          end
-          object grpDllDesFunc: TGroupBox
-            Left = 365
-            Top = 2
-            Width = 356
-            Height = 175
+          object grpPassword: TGroupBox
+            Left = 9
+            Top = 10
+            Width = 700
+            Height = 183
             Caption = 'Dll '#35299#23494#20989#25968
-            TabOrder = 3
-            Visible = False
+            TabOrder = 0
             object lbl5: TLabel
               Left = 8
               Top = 26
@@ -506,11 +453,13 @@ object DBConfig: TDBConfig
             object lbl7: TLabel
               Left = 12
               Top = 87
-              Width = 301
-              Height = 75
+              Width = 568
+              Height = 90
               Caption = 
-                #27880#65306#13#10'  '#20989#25968#24517#39035#26159#20004#20010#36755#20837#21442#25968#65292#19968#20010#36755#20986#21442#25968#12290#13#10'  '#31532#19968#20010#21442#25968#20026#24453#35299#23494#23383#31526#20018#65292#13#10'  '#31532#20108#20010#21442#25968#20026#35299#23494#30340#23494#38053#65292#13#10'  '#36820#22238 +
-                #35299#23494#23383#31526#20018#32467#26524
+                #27880#65306#13#10'  '#20989#25968#24517#39035#26159#19968#20010#36755#20837#21442#25968#65292#19968#20010#36755#20986#21442#25968#12290#13#10'  '#36755#20837#21442#25968#20026#24453#35299#23494#30340#23383#31526#20018#65307#13#10'  '#36755#20986#21442#25968#20026#35299#23494#21518#30340#23383#31526#20018#65307#13#10'  f' +
+                'unction FuncName(const strPassword: PAnsiChar):PAnsiChar;  // De' +
+                'lphi'#13#10'  char *   FuncName(const char * strPassword);            ' +
+                '    // VC'
               Color = clBlue
               Font.Charset = GB2312_CHARSET
               Font.Color = clBlue
@@ -523,23 +472,18 @@ object DBConfig: TDBConfig
             object cbb4: TComboBox
               Left = 87
               Top = 52
-              Width = 234
+              Width = 478
               Height = 23
               Style = csDropDownList
               TabOrder = 0
             end
-            object SearchBox1: TSearchBox
+            object srchbxDecFuncFile: TSearchBox
               Left = 87
-              Top = 23
-              Width = 258
-              Height = 22
-              Font.Charset = GB2312_CHARSET
-              Font.Color = clWindowText
-              Font.Height = -16
-              Font.Name = #23435#20307
-              Font.Style = []
-              ParentFont = False
+              Top = 24
+              Width = 478
+              Height = 21
               TabOrder = 1
+              OnInvokeSearch = srchbxDecFuncFileInvokeSearch
             end
           end
         end

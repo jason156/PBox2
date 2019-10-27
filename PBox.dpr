@@ -13,14 +13,15 @@ uses
   uCreateEXE in 'uCreateEXE.pas',
   uPBoxForm in 'uPBoxForm.pas' {frmPBox} ,
   uConfigForm in 'uConfigForm.pas' {frmConfig} ,
+  uAddEXE in 'uAddEXE.pas' {frmAddEXE} ,
   uDBConfig in 'uDBConfig.pas' {DBConfig} ,
-  uAddEXE in 'uAddEXE.pas' {frmAddEXE};
+  uLoginForm in 'uLoginForm.pas' {frmLogin};
 
 {$R *.res}
 
 begin
   OnlyOneRunInstance;
-  UpdateDataBaseScript;
+  CheckLoginForm;
   Application.Initialize;
   ReportMemoryLeaksOnShutdown   := True;
   Application.MainFormOnTaskbar := True;

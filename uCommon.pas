@@ -48,9 +48,6 @@ procedure OnlyOneRunInstance;
 { 提升权限 }
 function EnableDebugPrivilege(PrivName: string; CanDebug: Boolean): Boolean;
 
-{ 升级数据库---执行脚本 }
-function UpdateDataBaseScript: Boolean;
-
 { 获取本机IP }
 function GetNativeIP: String;
 
@@ -62,8 +59,11 @@ procedure SearchPlugInsDllFile(var lstDll: TStringList);
 
 function GetShowStyle: TShowStyle;
 
-{ 执行 Sql 脚本 }
-function ExeSql(const strFileName: string; ADOCNN: TADOConnection): Boolean;
+{ 执行 Sql 脚本，执行成功，是否删除文件 }
+function ExeSql(const strFileName: string; ADOCNN: TADOConnection; const bDeleteFileOnSuccess: Boolean = False): Boolean;
+
+{ 升级数据库---执行脚本 }
+function UpdateDataBaseScript(const ADOCNN: TADOConnection; const bDeleteFile: Boolean = False): Boolean;
 
 { 获取数据库库名 }
 function GetDBLibraryName(const strLinkDB: string): String;
@@ -82,6 +82,9 @@ function EncryptString(const strTemp, strKey: string): String;
 
 { 解密字符串 }
 function DecryptString(const strTemp, strKey: string): String;
+
+{ 建立数据库连接 }
+function TryLinkDataBase(const strLinkDB: string; var ADOCNN: TADOConnection): Boolean;
 
 var
   g_intVCDialogDllFormHandle: THandle = 0;
@@ -137,12 +140,6 @@ begin
     TP.Privileges[0].Attributes := 0;
   Result                        := AdjustTokenPrivileges(hToken, False, TP, SizeOf(TP), nil, Dummy);
   hToken                        := 0;
-end;
-
-{ 升级数据库---执行脚本 }
-function UpdateDataBaseScript: Boolean;
-begin
-  Result := True;
 end;
 
 { 获取本机IP }
@@ -340,31 +337,31 @@ begin
   end;
 end;
 
-{ 执行 Sql 脚本 }
-function ExeSql(const strFileName: string; ADOCNN: TADOConnection): Boolean;
+{ 执行 Sql 脚本，执行成功，是否删除文件 }
+function ExeSql(const strFileName: string; ADOCNN: TADOConnection; const bDeleteFileOnSuccess: Boolean = False): Boolean;
 var
-  strTemp   : String;
-  I         : Integer;
-  ADOtrigger: TADOQuery;
+  strTemp: String;
+  I      : Integer;
+  qry    : TADOQuery;
 begin
   Result := True;
 
   try
     with TStringList.Create do
     begin
-      ADOtrigger := TADOQuery.Create(nil);
+      qry := TADOQuery.Create(nil);
       try
-        ADOtrigger.Connection := ADOCNN;
+        qry.Connection := ADOCNN;
         LoadFromFile(strFileName);
         strTemp := '';
         for I   := 0 to Count - 1 do
         begin
           if SameText(Trim(Strings[I]), 'GO') then
           begin
-            ADOtrigger.Close;
-            ADOtrigger.SQL.Clear;
-            ADOtrigger.SQL.Text := strTemp;
-            ADOtrigger.ExecSQL;
+            qry.Close;
+            qry.SQL.Clear;
+            qry.SQL.Text := strTemp;
+            qry.ExecSQL;
             strTemp := '';
           end
           else
@@ -375,18 +372,40 @@ begin
 
         if strTemp <> '' then
         begin
-          ADOtrigger.Close;
-          ADOtrigger.SQL.Clear;
-          ADOtrigger.SQL.Text := strTemp;
-          ADOtrigger.ExecSQL;
+          qry.Close;
+          qry.SQL.Clear;
+          qry.SQL.Text := strTemp;
+          qry.ExecSQL;
         end;
       finally
-        ADOtrigger.Free;
+        if bDeleteFileOnSuccess then
+          DeleteFile(strFileName);
+        qry.Free;
         Free;
       end;
     end;
   except
     Result := False;
+  end;
+end;
+
+{ 升级数据库---执行脚本 }
+function UpdateDataBaseScript(const ADOCNN: TADOConnection; const bDeleteFile: Boolean = False): Boolean;
+var
+  strSQLFileName: String;
+begin
+  Result := False;
+  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+  begin
+    if ReadBool(c_strIniDBSection, 'AutoUpdate', False) then
+    begin
+      strSQLFileName := ReadString(c_strIniDBSection, 'AutoUpdateFile', '');
+      if Trim(strSQLFileName) <> '' then
+      begin
+        Result := ExeSql(ExtractFilePath(ParamStr(0)) + strSQLFileName, ADOCNN, bDeleteFile);
+      end;
+    end;
+    Free;
   end;
 end;
 
@@ -522,6 +541,39 @@ end;
 function DecryptString(const strTemp, strKey: string): String;
 begin
   Result := AESDecryptStrFromHex(strTemp, strKey, TEncoding.Unicode, TEncoding.UTF8, TKeyBit.kb256, '1234567890123456', TPaddingMode.pmPKCS5or7RandomPadding, True, rlCRLF, rlCRLF, nil);
+end;
+
+{ 建立数据库连接 }
+function TryLinkDataBase(const strLinkDB: string; var ADOCNN: TADOConnection): Boolean;
+begin
+  Result := False;
+
+  if strLinkDB = '' then
+    Exit;
+
+  if not Assigned(ADOCNN) then
+    Exit;
+
+  ADOCNN.KeepConnection := True;
+  ADOCNN.LoginPrompt    := False;
+  ADOCNN.Connected      := False;
+
+  if Pos('.udl', LowerCase(strLinkDB)) > 0 then
+  begin
+    ADOCNN.ConnectionString := 'FILE NAME=' + strLinkDB;
+    ADOCNN.Provider         := strLinkDB;
+  end
+  else
+  begin
+    ADOCNN.ConnectionString := strLinkDB;
+  end;
+
+  try
+    ADOCNN.Connected := True;
+    Result           := True;
+  except
+    Result := False;
+  end;
 end;
 
 end.

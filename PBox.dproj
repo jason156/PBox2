@@ -163,12 +163,16 @@
         <DCCReference Include="uConfigForm.pas">
             <Form>frmConfig</Form>
         </DCCReference>
+        <DCCReference Include="uAddEXE.pas">
+            <Form>frmAddEXE</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <DCCReference Include="uDBConfig.pas">
             <Form>DBConfig</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="uAddEXE.pas">
-            <Form>frmAddEXE</Form>
+        <DCCReference Include="uLoginForm.pas">
+            <Form>frmLogin</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Release">

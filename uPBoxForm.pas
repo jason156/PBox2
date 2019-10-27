@@ -572,6 +572,7 @@ begin
   with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
   begin
     Caption      := ReadString(c_strIniUISection, 'Title', c_strTitle);
+    TitleString  := Caption;
     MulScreenPos := ReadBool(c_strIniUISection, 'MulScreen', False);
     FbMaxForm    := ReadBool(c_strIniUISection, 'MAXSIZE', False);
     FormStyle    := TFormStyle(Integer(ReadBool(c_strIniUISection, 'OnTop', False)) * 3);
@@ -895,6 +896,7 @@ begin
   CreateSubModulesFormDialog(strPMdouleName);
 end;
 
+{ 按钮式风格 }
 procedure TfrmPBox.ChangeUI_Button;
 var
   tmpTB          : TToolButton;

@@ -48,19 +48,14 @@ type
     cbbLoginTable: TComboBox;
     cbbLoginName: TComboBox;
     cbbLoginPass: TComboBox;
-    chk1: TCheckBox;
-    pnlDesEnc: TPanel;
-    lbl4: TLabel;
-    lbl3: TLabel;
-    cbb3: TComboBox;
-    edt3: TEdit;
-    btnTestAES: TButton;
-    grpDllDesFunc: TGroupBox;
+    chkPassword: TCheckBox;
+    pnlPassword: TPanel;
+    grpPassword: TGroupBox;
     lbl5: TLabel;
     lbl6: TLabel;
     lbl7: TLabel;
     cbb4: TComboBox;
-    SearchBox1: TSearchBox;
+    srchbxDecFuncFile: TSearchBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnCreateDBLinkClick(Sender: TObject);
@@ -70,9 +65,10 @@ type
     procedure btnBackupDatabaseClick(Sender: TObject);
     procedure btnRestoreDatabaseClick(Sender: TObject);
     procedure chkAutoUpdateDBClick(Sender: TObject);
-    procedure FormShow(Sender: TObject);
+    procedure chkPasswordClick(Sender: TObject);
+    procedure srchbxDecFuncFileInvokeSearch(Sender: TObject);
+    procedure cbbLoginTableChange(Sender: TObject);
   private
-    { Private declarations }
     FmemIni: TMemIniFile;
     function CheckLinkDB: Boolean;
     procedure ReadConfigFillUI;
@@ -85,20 +81,21 @@ type
     { Public declarations }
   end;
 
-function ShowDBConfigForm(var memIni: TMemIniFile): Boolean;
+function ShowDBConfigForm: Boolean;
 
 implementation
 
 {$R *.dfm}
 
-function ShowDBConfigForm(var memIni: TMemIniFile): Boolean;
+function ShowDBConfigForm: Boolean;
 begin
   Result := True;
   with TDBConfig.Create(nil) do
   begin
-    FmemIni := memIni;
+    FmemIni := TMemIniFile.Create(ChangeFileExt(ParamStr(0), '.ini'));
     ReadConfigFillUI;
     ShowModal;
+    FmemIni.Free;
     Free;
   end;
 end;
@@ -276,12 +273,21 @@ begin
 
   if (not chkAutoUpdateDB.Checked) then
   begin
-    FmemIni.WriteString(c_strIniDBSection, 'AutoUpdate', '');
+    FmemIni.WriteBool(c_strIniDBSection, 'AutoUpdate', False);
+    FmemIni.WriteString(c_strIniDBSection, 'AutoUpdateFile', '');
   end;
 
   if (chkAutoUpdateDB.Checked) and (Trim(edtUpdateDBSqlScriptFileName.Text) <> '') then
   begin
-    FmemIni.WriteString(c_strIniDBSection, 'AutoUpdate', edtUpdateDBSqlScriptFileName.Text);
+    FmemIni.WriteBool(c_strIniDBSection, 'AutoUpdate', True);
+    FmemIni.WriteString(c_strIniDBSection, 'AutoUpdateFile', edtUpdateDBSqlScriptFileName.Text);
+  end;
+
+  if (cbbLoginTable.Text <> '') and (cbbLoginName.Text <> '') and (cbbLoginPass.Text <> '') and (not chkPassword.Checked) then
+  begin
+    FmemIni.WriteString(c_strIniDBSection, 'LoginTable', cbbLoginTable.Text);
+    FmemIni.WriteString(c_strIniDBSection, 'LoginNameField', cbbLoginName.Text);
+    FmemIni.WriteString(c_strIniDBSection, 'LoginPassField', cbbLoginPass.Text);
   end;
 
   FmemIni.WriteInteger(c_strIniDBSection, 'ActivePageIndex', pgcAll.ActivePageIndex);
@@ -319,27 +325,37 @@ begin
   end;
 end;
 
+procedure TDBConfig.cbbLoginTableChange(Sender: TObject);
+var
+  lstFields: TStringList;
+begin
+  if not adoCNN.Connected then
+    Exit;
+
+  cbbLoginName.Clear;
+  cbbLoginPass.Clear;
+  lstFields := TStringList.Create;
+  try
+    adoCNN.GetFieldNames(cbbLoginTable.Text, lstFields);
+    cbbLoginName.Items.AddStrings(lstFields);
+    cbbLoginPass.Items.AddStrings(lstFields);
+  finally
+    lstFields.Free;
+  end;
+end;
+
 { 连接数据库 }
 function TDBConfig.CheckLinkDB: Boolean;
 var
   strLinkDB: String;
 begin
-  Result := True;
-  try
-    strLinkDB := DecryptString(FmemIni.ReadString(c_strIniDBSection, 'Name', ''), c_strAESKey);
-    if Pos('.udl', LowerCase(strLinkDB)) > 0 then
-    begin
-      adoCNN.ConnectionString := 'FILE NAME=' + strLinkDB;
-      adoCNN.Provider         := strLinkDB;
-    end
-    else
-    begin
-      adoCNN.ConnectionString := strLinkDB;
-    end;
-    adoCNN.Connected := True;
-  except
-    Result := False;
-  end;
+  strLinkDB := DecryptString(FmemIni.ReadString(c_strIniDBSection, 'Name', ''), c_strAESKey);
+  Result    := TryLinkDataBase(strLinkDB, adoCNN);
+end;
+
+procedure TDBConfig.chkPasswordClick(Sender: TObject);
+begin
+  pnlPassword.Visible := chkPassword.Checked;
 end;
 
 procedure TDBConfig.chkAutoUpdateDBClick(Sender: TObject);
@@ -373,7 +389,10 @@ end;
 
 procedure TDBConfig.FillLoginConfig;
 var
-  lstTables: TStringList;
+  lstTables                 : TStringList;
+  lstFields                 : TStringList;
+  strLoginTable             : string;
+  strLoginName, strLoginPass: String;
 begin
   if not adoCNN.Connected then
     Exit;
@@ -388,21 +407,41 @@ begin
   finally
     lstTables.Free;
   end;
+
+  strLoginTable := FmemIni.ReadString(c_strIniDBSection, 'LoginTable', '');
+  strLoginName  := FmemIni.ReadString(c_strIniDBSection, 'LoginNameField', '');
+  strLoginPass  := FmemIni.ReadString(c_strIniDBSection, 'LoginPassField', '');
+  if strLoginTable <> '' then
+  begin
+    cbbLoginTable.ItemIndex := cbbLoginTable.Items.IndexOf(strLoginTable);
+
+    lstFields := TStringList.Create;
+    try
+      adoCNN.GetFieldNames(cbbLoginTable.Text, lstFields);
+      cbbLoginName.Items.AddStrings(lstFields);
+      cbbLoginPass.Items.AddStrings(lstFields);
+
+      if strLoginName <> '' then
+        cbbLoginName.ItemIndex := cbbLoginName.Items.IndexOf(strLoginName);
+
+      if strLoginPass <> '' then
+        cbbLoginPass.ItemIndex := cbbLoginPass.Items.IndexOf(strLoginPass);
+    finally
+      lstFields.Free;
+    end;
+  end;
 end;
 
-procedure TDBConfig.FormShow(Sender: TObject);
+procedure TDBConfig.ReadConfigFillUI;
 var
   strAutoUpdateDBSQLFileName: String;
 begin
   { 连接数据库 }
   CheckLinkDB;
 
-  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
-  begin
-    pgcAll.ActivePageIndex     := ReadInteger(c_strIniDBSection, 'ActivePageIndex', 0);
-    strAutoUpdateDBSQLFileName := ReadString(c_strIniDBSection, 'AutoUpdate', '');
-    Free;
-  end;
+  pgcAll.ActivePageIndex     := FmemIni.ReadInteger(c_strIniDBSection, 'ActivePageIndex', 0);
+  chkAutoUpdateDB.Checked    := FmemIni.ReadBool(c_strIniDBSection, 'AutoUpdate', False);
+  strAutoUpdateDBSQLFileName := FmemIni.ReadString(c_strIniDBSection, 'AutoUpdateFile', '');
 
   { 自动升级脚本 }
   if Trim(strAutoUpdateDBSQLFileName) <> '' then
@@ -411,13 +450,15 @@ begin
     edtUpdateDBSqlScriptFileName.Text := strAutoUpdateDBSQLFileName;
   end;
 
+  { 本机登录用户名 }
   edtLoginName1.Text := GetCurrentLoginUserName;
   edtLoginName2.Text := GetCurrentLoginUserName;
 
+  { 数据库登录信息 }
   FillLoginConfig;
 end;
 
-procedure TDBConfig.ReadConfigFillUI;
+procedure TDBConfig.srchbxDecFuncFileInvokeSearch(Sender: TObject);
 begin
   //
 end;

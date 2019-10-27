@@ -288,8 +288,8 @@ object frmPBox: TfrmPBox
       object imgListBack: TImage
         Left = 0
         Top = 0
-        Width = 996
-        Height = 569
+        Width = 1119
+        Height = 642
         Align = alClient
         Stretch = True
         ExplicitLeft = 272
@@ -307,8 +307,8 @@ object frmPBox: TfrmPBox
       object imgDllFormBack: TImage
         Left = 0
         Top = 0
-        Width = 996
-        Height = 569
+        Width = 1119
+        Height = 642
         Align = alClient
         Stretch = True
         ExplicitLeft = 272
