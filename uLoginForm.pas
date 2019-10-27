@@ -65,8 +65,8 @@ begin
             Free;
           end
         end;
-        Free;
       end;
+      Free;
     end;
   finally
     g_ADOCNN.Free;
