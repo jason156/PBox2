@@ -344,7 +344,9 @@ var
   I      : Integer;
   qry    : TADOQuery;
 begin
-  Result := True;
+  Result := False;
+  if not FileExists(strFileName) then
+    Exit;
 
   try
     with TStringList.Create do
@@ -378,6 +380,7 @@ begin
           qry.ExecSQL;
         end;
       finally
+        Result := True;
         if bDeleteFileOnSuccess then
           DeleteFile(strFileName);
         qry.Free;
@@ -400,7 +403,7 @@ begin
     if ReadBool(c_strIniDBSection, 'AutoUpdate', False) then
     begin
       strSQLFileName := ReadString(c_strIniDBSection, 'AutoUpdateFile', '');
-      if Trim(strSQLFileName) <> '' then
+      if (Trim(strSQLFileName) <> '') and (FileExists(strSQLFileName)) then
       begin
         Result := ExeSql(ExtractFilePath(ParamStr(0)) + strSQLFileName, ADOCNN, bDeleteFile);
       end;

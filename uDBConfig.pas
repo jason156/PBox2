@@ -81,21 +81,20 @@ type
     { Public declarations }
   end;
 
-function ShowDBConfigForm: Boolean;
+function ShowDBConfigForm(var memIni: TMemIniFile): Boolean;
 
 implementation
 
 {$R *.dfm}
 
-function ShowDBConfigForm: Boolean;
+function ShowDBConfigForm(var memIni: TMemIniFile): Boolean;
 begin
   Result := True;
   with TDBConfig.Create(nil) do
   begin
-    FmemIni := TMemIniFile.Create(ChangeFileExt(ParamStr(0), '.ini'));
+    FmemIni := memIni;
     ReadConfigFillUI;
     ShowModal;
-    FmemIni.Free;
     Free;
   end;
 end;

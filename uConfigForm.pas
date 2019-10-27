@@ -96,7 +96,7 @@ end;
 
 procedure TfrmConfig.btnDatabaseConfigClick(Sender: TObject);
 begin
-  ShowDBConfigForm;
+  ShowDBConfigForm(FmemIni);
 end;
 
 { дё©Ииорф }
