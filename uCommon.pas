@@ -63,7 +63,7 @@ function GetShowStyle: TShowStyle;
 function ExeSql(const strFileName: string; ADOCNN: TADOConnection; const bDeleteFileOnSuccess: Boolean = False): Boolean;
 
 { 升级数据库---执行脚本 }
-function UpdateDataBaseScript(const ADOCNN: TADOConnection; const bDeleteFile: Boolean = False): Boolean;
+function UpdateDataBaseScript(const iniFile: TIniFile; const ADOCNN: TADOConnection; const bDeleteFile: Boolean = False): Boolean;
 
 { 获取数据库库名 }
 function GetDBLibraryName(const strLinkDB: string): String;
@@ -393,22 +393,18 @@ begin
 end;
 
 { 升级数据库---执行脚本 }
-function UpdateDataBaseScript(const ADOCNN: TADOConnection; const bDeleteFile: Boolean = False): Boolean;
+function UpdateDataBaseScript(const iniFile: TIniFile; const ADOCNN: TADOConnection; const bDeleteFile: Boolean = False): Boolean;
 var
   strSQLFileName: String;
 begin
   Result := False;
-  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+  if iniFile.ReadBool(c_strIniDBSection, 'AutoUpdate', False) then
   begin
-    if ReadBool(c_strIniDBSection, 'AutoUpdate', False) then
+    strSQLFileName := iniFile.ReadString(c_strIniDBSection, 'AutoUpdateFile', '');
+    if (Trim(strSQLFileName) <> '') and (FileExists(strSQLFileName)) then
     begin
-      strSQLFileName := ReadString(c_strIniDBSection, 'AutoUpdateFile', '');
-      if (Trim(strSQLFileName) <> '') and (FileExists(strSQLFileName)) then
-      begin
-        Result := ExeSql(ExtractFilePath(ParamStr(0)) + strSQLFileName, ADOCNN, bDeleteFile);
-      end;
+      Result := ExeSql(ExtractFilePath(ParamStr(0)) + strSQLFileName, ADOCNN, bDeleteFile);
     end;
-    Free;
   end;
 end;
 

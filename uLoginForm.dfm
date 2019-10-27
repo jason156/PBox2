@@ -67,7 +67,7 @@ object frmLogin: TfrmLogin
   end
   object edtUserPass: TEdit
     Left = 156
-    Top = 77
+    Top = 75
     Width = 221
     Height = 23
     Font.Charset = SYMBOL_CHARSET
@@ -82,7 +82,7 @@ object frmLogin: TfrmLogin
   end
   object btnSave: TButton
     Left = 276
-    Top = 153
+    Top = 161
     Width = 101
     Height = 32
     Anchors = [akLeft, akBottom]
@@ -95,11 +95,10 @@ object frmLogin: TfrmLogin
     ParentFont = False
     TabOrder = 2
     OnClick = btnSaveClick
-    ExplicitTop = 111
   end
   object btnCancel: TButton
     Left = 156
-    Top = 153
+    Top = 161
     Width = 105
     Height = 32
     Anchors = [akLeft, akBottom]
@@ -112,6 +111,35 @@ object frmLogin: TfrmLogin
     ParentFont = False
     TabOrder = 3
     OnClick = btnCancelClick
-    ExplicitTop = 111
+  end
+  object chkUserName: TCheckBox
+    Left = 156
+    Top = 104
+    Width = 97
+    Height = 17
+    Caption = #35760#20303#29992#25143#21517#31216
+    Font.Charset = GB2312_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = #23435#20307
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 4
+    OnClick = chkUserNameClick
+  end
+  object chkAutoLogin: TCheckBox
+    Left = 156
+    Top = 126
+    Width = 69
+    Height = 17
+    Caption = #33258#21160#30331#24405
+    Font.Charset = GB2312_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = #23435#20307
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 5
+    OnClick = chkAutoLoginClick
   end
 end

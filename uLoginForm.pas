@@ -15,13 +15,19 @@ type
     btnSave: TButton;
     btnCancel: TButton;
     imgLogo: TImage;
+    chkUserName: TCheckBox;
+    chkAutoLogin: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure edtUserPassKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure edtUserNameKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure chkAutoLoginClick(Sender: TObject);
+    procedure chkUserNameClick(Sender: TObject);
   private
     { Private declarations }
     FbResult: Boolean;
+    procedure LoadLoginInfo(var ini: TIniFile);
+    procedure SaveLoginInfo(var ini: TIniFile);
   public
     { Public declarations }
   end;
@@ -40,36 +46,95 @@ var
 
 procedure CheckLoginForm;
 var
+  IniFile  : TIniFile;
   strLinkDB: String;
 begin
   g_ADOCNN := TADOConnection.Create(nil);
   try
-    with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+    IniFile         := TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini'));
+    strLinkDB       := DecryptString(IniFile.ReadString(c_strIniDBSection, 'Name', ''), c_strAESKey);
+    g_strLoginTable := IniFile.ReadString(c_strIniDBSection, 'LoginTable', '');
+    g_strLoginName  := IniFile.ReadString(c_strIniDBSection, 'LoginNameField', '');
+    g_strLoginPass  := IniFile.ReadString(c_strIniDBSection, 'LoginPassField', '');
+    if TryLinkDataBase(strLinkDB, g_ADOCNN) then
     begin
-      strLinkDB       := DecryptString(ReadString(c_strIniDBSection, 'Name', ''), c_strAESKey);
-      g_strLoginTable := ReadString(c_strIniDBSection, 'LoginTable', '');
-      g_strLoginName  := ReadString(c_strIniDBSection, 'LoginNameField', '');
-      g_strLoginPass  := ReadString(c_strIniDBSection, 'LoginPassField', '');
-      if TryLinkDataBase(strLinkDB, g_ADOCNN) then
+      if (strLinkDB <> '') and (g_strLoginTable <> '') and (g_strLoginName <> '') and (g_strLoginPass <> '') then
       begin
-        if (strLinkDB <> '') and (g_strLoginTable <> '') and (g_strLoginName <> '') and (g_strLoginPass <> '') then
+        with TfrmLogin.Create(nil) do
         begin
-          with TfrmLogin.Create(nil) do
+          FbResult             := False;
+          imgLogo.Picture.Icon := Application.Icon;
+          Position             := poScreenCenter;
+          LoadLoginInfo(IniFile);
+          ShowModal;
+          if not FbResult then
           begin
-            FbResult             := False;
-            imgLogo.Picture.Icon := Application.Icon;
-            Position             := poScreenCenter;
-            ShowModal;
-            if not FbResult then
-              Halt(0);
-            Free;
+            Halt(0);
           end
-        end;
+          else
+          begin
+            { 登录成功 }
+            try
+              SaveLoginInfo(IniFile);
+              UpdateDataBaseScript(IniFile, g_ADOCNN, True);
+            except
+
+            end;
+          end;
+          Free;
+        end
       end;
-      Free;
     end;
+    IniFile.Free;
   finally
     g_ADOCNN.Free;
+  end;
+end;
+
+procedure TfrmLogin.LoadLoginInfo(var ini: TIniFile);
+begin
+  if ini.ReadBool(c_strIniDBSection, 'CheckLoginAuto', False) then
+  begin
+    edtUserName.Text     := ini.ReadString(c_strIniDBSection, 'LoginUserName', '');
+    edtUserPass.Text     := DecryptString(ini.ReadString(c_strIniUISection, 'LoginUserPass', ''), c_strAESKey);
+    chkUserName.Checked  := True;
+    chkAutoLogin.Checked := True;
+  end
+  else
+  begin
+    if ini.ReadBool(c_strIniDBSection, 'CheckLoginUserName', False) then
+    begin
+      edtUserName.Text     := ini.ReadString(c_strIniDBSection, 'LoginUserName', '');
+      edtUserPass.Text     := '';
+      chkUserName.Checked  := True;
+      chkAutoLogin.Checked := False;
+      Winapi.Windows.SetFocus(edtUserPass.Handle);
+    end;
+  end;
+end;
+
+procedure TfrmLogin.SaveLoginInfo(var ini: TIniFile);
+begin
+  ini.WriteBool(c_strIniDBSection, 'CheckLoginUserName', chkUserName.Checked);
+  ini.WriteBool(c_strIniDBSection, 'CheckLoginAuto', chkAutoLogin.Checked);
+
+  if chkAutoLogin.Checked then
+  begin
+    ini.WriteString(c_strIniDBSection, 'LoginUserName', edtUserName.Text);
+    ini.WriteString(c_strIniUISection, 'LoginUserPass', EncryptString(edtUserPass.Text, c_strAESKey));
+  end
+  else
+  begin
+    if chkUserName.Checked then
+    begin
+      ini.WriteString(c_strIniDBSection, 'LoginUserName', edtUserName.Text);
+      ini.WriteString(c_strIniUISection, 'LoginUserPass', '');
+    end
+    else
+    begin
+      ini.WriteString(c_strIniDBSection, 'LoginUserName', '');
+      ini.WriteString(c_strIniUISection, 'LoginUserPass', '');
+    end;
   end;
 end;
 
@@ -107,12 +172,8 @@ begin
     qry.Open;
     if qry.RecordCount > 0 then
     begin
+      { 登录成功 }
       FbResult := True;
-      try
-        UpdateDataBaseScript(g_ADOCNN, True);
-      except
-
-      end;
       Close;
     end
     else
@@ -121,6 +182,18 @@ begin
     end;
     qry.Free;
   end;
+end;
+
+procedure TfrmLogin.chkAutoLoginClick(Sender: TObject);
+begin
+  if chkAutoLogin.Checked then
+    chkUserName.Checked := True;
+end;
+
+procedure TfrmLogin.chkUserNameClick(Sender: TObject);
+begin
+  if not chkUserName.Checked then
+    chkAutoLogin.Checked := False;
 end;
 
 procedure TfrmLogin.edtUserNameKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
