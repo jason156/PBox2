@@ -3,7 +3,7 @@ unit uPBoxForm;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles, System.Math, System.UITypes,
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.IOUtils, System.Types, System.ImageList, System.IniFiles, System.Math, System.UITypes,
   Vcl.Graphics, Vcl.Controls, Vcl.Buttons, Vcl.Forms, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ImgList, Vcl.ToolWin, Vcl.Imaging.jpeg, Vcl.Imaging.pngimage,
   uCommon, uBaseForm, HookUtils, uCreateDelphiDll, uCreateVCDialogDll, uCreateEXE;
 
@@ -284,14 +284,28 @@ var
   IcoExe: TIcon;
 begin
   Result := -1;
-  if ExtractIcon(HInstance, PChar(strFileName), $FFFFFFFF) > 0 then
+  if CompareText(ExtractFileExt(strFileName), '.msc') = 0 then
   begin
     IcoExe := TIcon.Create;
     try
-      IcoExe.Handle := ExtractIcon(HInstance, PChar(strFileName), 0);
-      Result        := ilMainMenu.AddIcon(IcoExe);
+      { 从 .msc 文件中获取图标 }
+      LoadIconFromMSCFile(strFileName, IcoExe);
+      Result := ilMainMenu.AddIcon(IcoExe);
     finally
       IcoExe.Free;
+    end;
+  end
+  else
+  begin
+    if ExtractIcon(HInstance, PChar(strFileName), $FFFFFFFF) > 0 then
+    begin
+      IcoExe := TIcon.Create;
+      try
+        IcoExe.Handle := ExtractIcon(HInstance, PChar(strFileName), 0);
+        Result        := ilMainMenu.AddIcon(IcoExe);
+      finally
+        IcoExe.Free;
+      end;
     end;
   end;
 end;

@@ -2,7 +2,9 @@ unit uCommon;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch, FlyUtils.CnXXX.Common, FlyUtils.AES;
+uses Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch,
+  FlyUtils.CnXXX.Common, FlyUtils.AES,
+  IdHashMessageDigest, IdHashCRC, IdHashSHA, IdSSLOpenSSLHeaders;
 
 type
   { 界面显示方式：菜单、按钮对话框、列表 }
@@ -85,6 +87,9 @@ function DecryptString(const strTemp, strKey: string): String;
 
 { 建立数据库连接 }
 function TryLinkDataBase(const strLinkDB: string; var ADOCNN: TADOConnection): Boolean;
+
+{ 从 .msc 文件中获取图标 }
+procedure LoadIconFromMSCFile(const strMSCFileName: string; var IcoMSC: TIcon);
 
 var
   g_intVCDialogDllFormHandle: THandle = 0;
@@ -572,6 +577,63 @@ begin
     Result           := True;
   except
     Result := False;
+  end;
+end;
+
+function GetSystemPath: String;
+var
+  Buffer: array [0 .. 255] of Char;
+begin
+  GetSystemDirectory(Buffer, 256);
+  Result := Buffer;
+end;
+
+{ 从 .msc 文件中获取图标 }
+procedure LoadIconFromMSCFile(const strMSCFileName: string; var IcoMSC: TIcon);
+var
+  strLine       : String;
+  strSystemPath : String;
+  I, J, intIndex: Integer;
+  intIconIndex  : Integer;
+  strDllFileName: String;
+  strTemp       : String;
+begin
+  with TStringList.Create do
+  begin
+    intIndex      := -1;
+    strSystemPath := GetSystemPath;
+    LoadFromFile(strSystemPath + '\' + strMSCFileName, TEncoding.ASCII);
+
+    for I := 0 to Count - 1 do
+    begin
+      strLine := Strings[I];
+      if strLine <> '' then
+      begin
+        if Pos('<Icon Index="', strLine) > 0 then
+        begin
+          intIndex := I;
+          Break;
+        end;
+      end;
+    end;
+
+    if intIndex <> -1 then
+    begin
+      strLine      := Strings[intIndex];
+      I            := Pos('"', strLine);
+      strTemp      := RightStr(strLine, Length(strLine) - I);
+      J            := Pos('"', strTemp);
+      intIconIndex := StrToIntDef(MidStr(strLine, I + 1, J - 1), 0);
+
+      I              := Pos('File="', strLine);
+      strTemp        := RightStr(strLine, Length(strLine) - I - 5);
+      J              := Pos('"', strTemp);
+      strDllFileName := MidStr(strTemp, 1, J - 1);
+
+      IcoMSC.Handle := ExtractIcon(HInstance, PChar(strDllFileName), intIconIndex);
+    end;
+
+    Free;
   end;
 end;
 

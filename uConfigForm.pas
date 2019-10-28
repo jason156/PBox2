@@ -468,7 +468,7 @@ begin
     if (CompareText(strParentModuleName, strPModuleName) = 0) and (CompareText(strSubModuleName, strSModuleName) = 0) then
     begin
       strExeFileName := FlstModuleAll.Names[I];
-      Result         := CompareText('.exe', ExtractFileExt(strExeFileName)) = 0;
+      Result         := (CompareText('.exe', ExtractFileExt(strExeFileName)) = 0) or (CompareText('.msc', ExtractFileExt(strExeFileName)) = 0);
       Break;
     end;
   end;
@@ -495,11 +495,26 @@ begin
   begin
     btnSubModuleIcon.Enabled := False;
     imgSModuleIcon.Enabled   := False;
-    if ExtractIcon(HInstance, PChar(strExeFileName), $FFFFFFFF) > 0 then
+
+    if CompareText(ExtractFileExt(strExeFileName), '.exe') = 0 then
+    begin
+      if ExtractIcon(HInstance, PChar(strExeFileName), $FFFFFFFF) > 0 then
+      begin
+        IcoExe := TIcon.Create;
+        try
+          IcoExe.Handle := ExtractIcon(HInstance, PChar(strExeFileName), 0);
+          imgSModuleIcon.Picture.Assign(IcoExe);
+        finally
+          IcoExe.Free;
+        end;
+      end;
+    end;
+
+    if CompareText(ExtractFileExt(strExeFileName), '.msc') = 0 then
     begin
       IcoExe := TIcon.Create;
       try
-        IcoExe.Handle := ExtractIcon(HInstance, PChar(strExeFileName), 0);
+        LoadIconFromMSCFile(strExeFileName, IcoExe);
         imgSModuleIcon.Picture.Assign(IcoExe);
       finally
         IcoExe.Free;
