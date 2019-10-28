@@ -56,7 +56,7 @@ object DBConfig: TDBConfig
     Top = 8
     Width = 812
     Height = 437
-    ActivePage = ts3
+    ActivePage = ts7
     MultiLine = True
     TabHeight = 35
     TabOrder = 2
@@ -422,7 +422,7 @@ object DBConfig: TDBConfig
             Top = 10
             Width = 700
             Height = 183
-            Caption = 'Dll '#35299#23494#20989#25968
+            Caption = 'Dll '#21152#23494#20989#25968
             TabOrder = 0
             object lbl5: TLabel
               Left = 8
@@ -442,7 +442,7 @@ object DBConfig: TDBConfig
               Top = 56
               Width = 75
               Height = 15
-              Caption = #35299#23494#20989#25968#65306
+              Caption = #21152#23494#20989#25968#65306
               Font.Charset = GB2312_CHARSET
               Font.Color = clRed
               Font.Height = -15
@@ -456,7 +456,7 @@ object DBConfig: TDBConfig
               Width = 568
               Height = 90
               Caption = 
-                #27880#65306#13#10'  '#20989#25968#24517#39035#26159#19968#20010#36755#20837#21442#25968#65292#19968#20010#36755#20986#21442#25968#12290#13#10'  '#36755#20837#21442#25968#20026#24453#35299#23494#30340#23383#31526#20018#65307#13#10'  '#36755#20986#21442#25968#20026#35299#23494#21518#30340#23383#31526#20018#65307#13#10'  f' +
+                #27880#65306#13#10'  '#20989#25968#24517#39035#26159#19968#20010#36755#20837#21442#25968#65292#19968#20010#36755#20986#21442#25968#12290#13#10'  '#36755#20837#21442#25968#20026#24453#21152#23494#30340#23383#31526#20018#65307#13#10'  '#36755#20986#21442#25968#20026#21152#23494#21518#30340#23383#31526#20018#65307#13#10'  f' +
                 'unction FuncName(const strPassword: PAnsiChar):PAnsiChar;  // De' +
                 'lphi'#13#10'  char *   FuncName(const char * strPassword);            ' +
                 '    // VC'
@@ -469,7 +469,7 @@ object DBConfig: TDBConfig
               ParentColor = False
               ParentFont = False
             end
-            object cbb4: TComboBox
+            object cbbDllFunc: TComboBox
               Left = 87
               Top = 52
               Width = 478

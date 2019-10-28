@@ -54,7 +54,7 @@ type
     lbl5: TLabel;
     lbl6: TLabel;
     lbl7: TLabel;
-    cbb4: TComboBox;
+    cbbDllFunc: TComboBox;
     srchbxDecFuncFile: TSearchBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
@@ -282,11 +282,29 @@ begin
     FmemIni.WriteString(c_strIniDBSection, 'AutoUpdateFile', edtUpdateDBSqlScriptFileName.Text);
   end;
 
-  if (cbbLoginTable.Text <> '') and (cbbLoginName.Text <> '') and (cbbLoginPass.Text <> '') and (not chkPassword.Checked) then
+  if not chkPassword.Checked then
   begin
-    FmemIni.WriteString(c_strIniDBSection, 'LoginTable', cbbLoginTable.Text);
-    FmemIni.WriteString(c_strIniDBSection, 'LoginNameField', cbbLoginName.Text);
-    FmemIni.WriteString(c_strIniDBSection, 'LoginPassField', cbbLoginPass.Text);
+    if (cbbLoginTable.Text <> '') and (cbbLoginName.Text <> '') and (cbbLoginPass.Text <> '') then
+    begin
+      FmemIni.WriteString(c_strIniDBSection, 'LoginTable', cbbLoginTable.Text);
+      FmemIni.WriteString(c_strIniDBSection, 'LoginNameField', cbbLoginName.Text);
+      FmemIni.WriteString(c_strIniDBSection, 'LoginPassField', cbbLoginPass.Text);
+      FmemIni.WriteBool(c_strIniDBSection, 'PasswordEnc', False);
+      FmemIni.WriteString(c_strIniDBSection, 'PasswordDecDllFileName', '');
+      FmemIni.WriteString(c_strIniDBSection, 'PasswordDecDllFuncName', '');
+    end;
+  end
+  else
+  begin
+    if (cbbLoginTable.Text <> '') and (cbbLoginName.Text <> '') and (cbbLoginPass.Text <> '') and (srchbxDecFuncFile.Text <> '') and (cbbDllFunc.Text <> '') then
+    begin
+      FmemIni.WriteString(c_strIniDBSection, 'LoginTable', cbbLoginTable.Text);
+      FmemIni.WriteString(c_strIniDBSection, 'LoginNameField', cbbLoginName.Text);
+      FmemIni.WriteString(c_strIniDBSection, 'LoginPassField', cbbLoginPass.Text);
+      FmemIni.WriteBool(c_strIniDBSection, 'PasswordEnc', True);
+      FmemIni.WriteString(c_strIniDBSection, 'PasswordDecDllFileName', srchbxDecFuncFile.Text);
+      FmemIni.WriteString(c_strIniDBSection, 'PasswordDecDllFuncName', cbbDllFunc.Text);
+    end;
   end;
 
   FmemIni.WriteInteger(c_strIniDBSection, 'ActivePageIndex', pgcAll.ActivePageIndex);
@@ -392,6 +410,7 @@ var
   lstFields                 : TStringList;
   strLoginTable             : string;
   strLoginName, strLoginPass: String;
+  lstFunc                   : TStringList;
 begin
   if not adoCNN.Connected then
     Exit;
@@ -429,6 +448,23 @@ begin
       lstFields.Free;
     end;
   end;
+
+  chkPassword.Checked := FmemIni.ReadBool(c_strIniDBSection, 'PasswordEnc', False);
+  if chkPassword.Checked then
+  begin
+    if FileExists(FmemIni.ReadString(c_strIniDBSection, 'PasswordDecDllFileName', '')) then
+    begin
+      srchbxDecFuncFile.Text := FmemIni.ReadString(c_strIniDBSection, 'PasswordDecDllFileName', '');
+      lstFunc                := TStringList.Create;
+      try
+        GetPEExport(srchbxDecFuncFile.Text, lstFunc);
+        cbbDllFunc.Items.AddStrings(lstFunc);
+        cbbDllFunc.ItemIndex := cbbDllFunc.Items.IndexOf(FmemIni.ReadString(c_strIniDBSection, 'PasswordDecDllFuncName', ''));
+      finally
+        lstFunc.Free;
+      end;
+    end;
+  end;
 end;
 
 procedure TDBConfig.ReadConfigFillUI;
@@ -458,8 +494,29 @@ begin
 end;
 
 procedure TDBConfig.srchbxDecFuncFileInvokeSearch(Sender: TObject);
+var
+  lstFunc: TStringList;
 begin
-  //
+  with TOpenDialog.Create(nil) do
+  begin
+    Filter := 'Dll(*.Dll)|*.Dll';
+    if not Execute(Application.MainForm.Handle) then
+      Exit;
+
+    srchbxDecFuncFile.Text := FileName;
+    lstFunc                := TStringList.Create;
+    try
+      if GetPEExport(FileName, lstFunc) then
+      begin
+        cbbDllFunc.Clear;
+        cbbDllFunc.Items.AddStrings(lstFunc);
+        cbbDllFunc.ItemIndex := 0;
+      end;
+    finally
+      lstFunc.Free;
+    end;
+    Free;
+  end;
 end;
 
 end.

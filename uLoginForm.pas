@@ -165,7 +165,7 @@ begin
 
   if (g_ADOCNN.Connected) and (g_strLoginTable <> '') and (g_strLoginName <> '') and (g_strLoginPass <> '') then
   begin
-    strSQL         := Format('select * from %s where %s=%s and %s=%s', [g_strLoginTable, g_strLoginName, QuotedStr(edtUserName.Text), g_strLoginPass, QuotedStr(edtUserPass.Text)]);
+    strSQL         := Format('select * from %s where %s=%s and %s=%s', [g_strLoginTable, g_strLoginName, QuotedStr(edtUserName.Text), g_strLoginPass, QuotedStr(EncDatabasePassword(edtUserPass.Text))]);
     qry            := TADOQuery.Create(nil);
     qry.Connection := g_ADOCNN;
     qry.SQL.Text   := strSQL;

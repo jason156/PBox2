@@ -91,6 +91,12 @@ function TryLinkDataBase(const strLinkDB: string; var ADOCNN: TADOConnection): B
 { 从 .msc 文件中获取图标 }
 procedure LoadIconFromMSCFile(const strMSCFileName: string; var IcoMSC: TIcon);
 
+{ 从 Dll 中获取导出函数列表 }
+function GetPEExport(const strDllFieName: String; var lstFunc: TStringList): Boolean;
+
+{ 数据库密码加密 }
+function EncDatabasePassword(const strPassword: string): String;
+
 var
   g_intVCDialogDllFormHandle: THandle = 0;
   g_strCreateDllFileName    : string  = '';
@@ -633,6 +639,128 @@ begin
       IcoMSC.Handle := ExtractIcon(HInstance, PChar(strDllFileName), intIconIndex);
     end;
 
+    Free;
+  end;
+end;
+
+procedure FindExportTablePos(const sts: array of TImageSectionHeader; const intVA: Cardinal; var intRA: Cardinal);
+var
+  III, Count: Integer;
+begin
+  intRA := 0;
+
+  Count   := Length(sts);
+  for III := 0 to Count - 2 do
+  begin
+    if (intVA >= sts[III + 0].VirtualAddress) and (intVA < sts[III + 1].VirtualAddress) then
+    begin
+      intRA := (intVA - sts[III].VirtualAddress) + sts[III].PointerToRawData;
+      Break;
+    end;
+  end;
+end;
+
+{ 从 Dll 中获取导出函数列表 }
+function GetPEExport(const strDllFieName: String; var lstFunc: TStringList): Boolean;
+var
+  idh            : TImageDosHeader;
+  bX64           : Boolean;
+  hPEFile        : Cardinal;
+  intVA          : Cardinal;
+  intRA          : Cardinal;
+  inhX86         : TImageNtHeaders32;
+  inhX64         : TImageNtHeaders64;
+  stsArr         : array of TImageSectionHeader;
+  eft            : TImageExportDirectory;
+  I              : Integer;
+  intFuncRA      : Cardinal;
+  strFunctionName: array [0 .. 255] of AnsiChar;
+begin
+  Result  := False;
+  hPEFile := FileOpen(strDllFieName, fmOpenRead);
+  if hPEFile = INVALID_HANDLE_VALUE then
+  begin
+    MessageBox(Application.MainForm.Handle, '文件无法打开，检查一下文件是否被占用', '系统提示：', MB_OK or MB_ICONERROR);
+    Exit;
+  end;
+
+  try
+    FileRead(hPEFile, idh, SizeOf(idh));
+    if idh.e_magic <> IMAGE_DOS_SIGNATURE then
+    begin
+      MessageBox(Application.MainForm.Handle, '不是PE文件，请检查文件', '系统提示：', MB_OK or MB_ICONERROR);
+      Exit;
+    end;
+
+    FileSeek(hPEFile, idh._lfanew, 0);
+    FileSeek(hPEFile, idh._lfanew, 0);
+    FileRead(hPEFile, inhX86, SizeOf(TImageNtHeaders32));
+    bX64 := inhX86.FileHeader.Machine = IMAGE_FILE_MACHINE_AMD64;
+
+    if bX64 then
+    begin
+      FileSeek(hPEFile, idh._lfanew, 0);
+      FileRead(hPEFile, inhX64, SizeOf(TImageNtHeaders64));
+      intVA := inhX64.OptionalHeader.DataDirectory[0].VirtualAddress;
+      SetLength(stsArr, inhX64.FileHeader.NumberOfSections);
+      FileRead(hPEFile, stsArr[0], inhX64.FileHeader.NumberOfSections * SizeOf(TImageSectionHeader));
+    end
+    else
+    begin
+      intVA := inhX86.OptionalHeader.DataDirectory[0].VirtualAddress;
+      SetLength(stsArr, inhX86.FileHeader.NumberOfSections);
+      FileRead(hPEFile, stsArr[0], inhX86.FileHeader.NumberOfSections * SizeOf(TImageSectionHeader));
+    end;
+
+    FindExportTablePos(stsArr, intVA, intRA);
+    FileSeek(hPEFile, intRA, 0);
+    FileRead(hPEFile, eft, SizeOf(TImageExportDirectory));
+    for I := 0 to eft.NumberOfNames - 1 do
+    begin
+      FileSeek(hPEFile, eft.AddressOfNames - intVA + intRA + DWORD(4 * I), 0);
+      FileRead(hPEFile, intFuncRA, 4);
+      FileSeek(hPEFile, intFuncRA - intVA + intRA, 0);
+      FileRead(hPEFile, strFunctionName, 256);
+      lstFunc.Add(string(strFunctionName));
+    end;
+    Result := True;
+  finally
+    FileClose(hPEFile);
+  end;
+end;
+
+{ 数据库密码加密 }
+function EncDatabasePassword(const strPassword: string): String;
+var
+  strDllFileName: String;
+  strDllFuncName: String;
+  hDll          : HMODULE;
+  EncFunc       : function(const strPassword: PAnsiChar): PAnsiChar; stdcall;
+begin
+  Result := strPassword;
+  with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
+  begin
+    if ReadBool(c_strIniDBSection, 'PasswordEnc', False) then
+    begin
+      strDllFileName := ReadString(c_strIniDBSection, 'PasswordDecDllFileName', '');
+      strDllFuncName := ReadString(c_strIniDBSection, 'PasswordDecDllFuncName', '');
+      if FileExists(strDllFileName) then
+      begin
+        hDll := LoadLibrary(PChar(strDllFileName));
+        if hDll <> INVALID_HANDLE_VALUE then
+        begin
+          try
+            EncFunc := GetProcaddress(hDll, PChar(strDllFuncName));
+            if Assigned(EncFunc) = True then
+            begin
+              Result := string(PChar(EncFunc(PAnsiChar(PChar(strPassword)))));
+            end;
+          finally
+            FreeLibrary(hDll);
+          end;
+        end;
+      end;
+    end;
     Free;
   end;
 end;
