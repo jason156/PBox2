@@ -40,7 +40,7 @@ IV: description of DLL output function parameters
                           Support:  
                             ftDelphiDll   : The form DLL written by Delphi;  
                             ftVCDialogDll : The form DLL written by dialog mode in VC language;  
-                            ftVCMFCDll    : The form DLL written by MFC   mode in VC language;  
+                            ftVCMFCDll    : The form DLL written by MFC    mode in VC language;  
                             ftQTDll       : Form DLL written by QT language;  
                             ftEXE         : EXE file with form;  
     strParentModuleName : Parent module name;  
