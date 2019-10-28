@@ -501,7 +501,10 @@ begin
   begin
     Filter := 'Dll(*.Dll)|*.Dll';
     if not Execute(Application.MainForm.Handle) then
+    begin
+      Free;
       Exit;
+    end;
 
     srchbxDecFuncFile.Text := FileName;
     lstFunc                := TStringList.Create;

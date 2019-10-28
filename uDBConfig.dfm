@@ -419,9 +419,9 @@ object DBConfig: TDBConfig
           Visible = False
           object grpPassword: TGroupBox
             Left = 9
-            Top = 10
+            Top = 6
             Width = 700
-            Height = 183
+            Height = 187
             Caption = 'Dll '#21152#23494#20989#25968
             TabOrder = 0
             object lbl5: TLabel
@@ -480,9 +480,10 @@ object DBConfig: TDBConfig
             object srchbxDecFuncFile: TSearchBox
               Left = 87
               Top = 24
-              Width = 478
+              Width = 503
               Height = 21
               TabOrder = 1
+              OnDblClick = srchbxDecFuncFileInvokeSearch
               OnInvokeSearch = srchbxDecFuncFileInvokeSearch
             end
           end
