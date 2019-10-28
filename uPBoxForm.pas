@@ -186,7 +186,7 @@ begin
     Exit;
 
   { exe нд╪Ч }
-  if CompareText(ExtractFileExt(g_strCreateDllFileName), '.exe') = 0 then
+  if (CompareText(ExtractFileExt(g_strCreateDllFileName), '.exe') = 0) or (CompareText(ExtractFileExt(g_strCreateDllFileName), '.msc') = 0) then
   begin
     strFileValue := FlstAllDll.Values[g_strCreateDllFileName];
     PBoxRun_IMAGE_EXE(g_strCreateDllFileName, strFileValue, rzpgcntrlAll, tsDll, lblInfo, FUIShowStyle);
