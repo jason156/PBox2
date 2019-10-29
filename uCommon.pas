@@ -2,10 +2,13 @@ unit uCommon;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, Winapi.IpRtrMib, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch, IdHashMessageDigest, IdHashCRC, IdHashSHA, IdSSLOpenSSLHeaders,
+uses
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, Winapi.IpRtrMib, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch, IdHashMessageDigest, IdHashCRC, IdHashSHA, IdSSLOpenSSLHeaders,
   FlyUtils.CnXXX.Common, FlyUtils.AES, uNetworkManager;
 
 type
+  TShowMethod = procedure(const str: string) of object;
+
   { 界面显示方式：菜单、按钮对话框、列表 }
   TShowStyle = (ssMenu, ssButton, ssList);
 
@@ -98,6 +101,12 @@ function EncDatabasePassword(const strPassword: string): String;
 
 { 获取网络下载上传速度 }
 procedure GetWebSpeed(var strDnSpeed, strUpSpeed: string);
+
+{ 实时获取 DOS 命令行输出 }
+function RunDOS_Real(const cmd: string; CallBackShowRealMessage: TShowMethod = nil): string;
+
+{ 获取 DOS 命令行输出 }
+function RunDOS_Result(const CommandLine: string): string;
 
 var
   g_intVCDialogDllFormHandle: THandle = 0;
@@ -833,6 +842,115 @@ begin
   finally
     lsNetworkTraffic.Free;
     NetworkManager.Free;
+  end;
+end;
+
+{ 实时获取 DOS 命令行输出 }
+function RunDOS_Real(const cmd: string; CallBackShowRealMessage: TShowMethod = nil): string;
+var
+  hReadPipe, hWritePipe: THandle;
+  si                   : STARTUPINFO;
+  lsa                  : SECURITY_ATTRIBUTES;
+  pi                   : PROCESS_INFORMATION;
+  cchReadBuffer        : DWORD;
+  pOutStr              : PAnsiChar;
+  res, strCMD          : string;
+begin
+  strCMD                   := 'cmd.exe /k ' + cmd;
+  pOutStr                  := AllocMem(5000);
+  lsa.nLength              := SizeOf(SECURITY_ATTRIBUTES);
+  lsa.lpSecurityDescriptor := nil;
+  lsa.bInheritHandle       := True;
+  if not CreatePipe(hReadPipe, hWritePipe, @lsa, 0) then
+    Exit;
+
+  FillChar(si, SizeOf(STARTUPINFO), 0);
+  si.cb          := SizeOf(STARTUPINFO);
+  si.dwFlags     := (STARTF_USESTDHANDLES or STARTF_USESHOWWINDOW);
+  si.wShowWindow := SW_HIDE;
+  si.hStdOutput  := hWritePipe;
+
+  if not CreateProcess(nil, PChar(strCMD), nil, nil, True, 0, nil, nil, si, pi) then
+    Exit;
+
+  while (True) do
+  begin
+    if not PeekNamedPipe(hReadPipe, pOutStr, 1, @cchReadBuffer, nil, nil) then
+      Break;
+
+    if cchReadBuffer <> 0 then
+    begin
+      if not ReadFile(hReadPipe, pOutStr^, 4096, cchReadBuffer, nil) then
+        Break;
+
+      pOutStr[cchReadBuffer] := chr(0);
+      if @CallBackShowRealMessage <> nil then
+        CallBackShowRealMessage(string(pOutStr));
+      res := res + String(pOutStr);
+    end
+    else if (WaitForSingleObject(pi.hProcess, 0) = WAIT_OBJECT_0) then
+      Break;
+
+    Sleep(10);
+
+    Application.ProcessMessages;
+  end;
+  pOutStr[cchReadBuffer] := chr(0);
+
+  CloseHandle(hReadPipe);
+  CloseHandle(pi.hThread);
+  CloseHandle(pi.hProcess);
+  CloseHandle(hWritePipe);
+  FreeMem(pOutStr);
+  Result := res;
+end;
+
+{ 获取 DOS 命令行输出 }
+function RunDOS_Result(const CommandLine: string): string;
+var
+  sa                             : TSecurityAttributes;
+  si                             : TStartupInfo;
+  pi                             : TProcessInformation;
+  StdOutPipeRead, StdOutPipeWrite: THandle;
+  bWasOK                         : Boolean;
+  Buffer                         : array [0 .. 255] of AnsiChar;
+  BytesRead                      : Cardinal;
+  bCreate                        : Boolean;
+begin
+  Result                  := '';
+  sa.nLength              := SizeOf(sa);
+  sa.bInheritHandle       := True;
+  sa.lpSecurityDescriptor := nil;
+  CreatePipe(StdOutPipeRead, StdOutPipeWrite, @sa, 0);
+  try
+    FillChar(si, SizeOf(si), 0);
+    si.cb          := SizeOf(si);
+    si.dwFlags     := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
+    si.wShowWindow := SW_HIDE;
+    si.hStdInput   := GetStdHandle(STD_INPUT_HANDLE);
+    si.hStdOutput  := StdOutPipeWrite;
+    si.hStdError   := StdOutPipeWrite;
+    bCreate        := CreateProcess(nil, PChar('cmd.exe /C ' + CommandLine), nil, nil, True, 0, nil, nil, si, pi);
+    CloseHandle(StdOutPipeWrite);
+    if bCreate then
+    begin
+      try
+        repeat
+          bWasOK := ReadFile(StdOutPipeRead, Buffer, 255, BytesRead, nil);
+          if BytesRead > 0 then
+          begin
+            Buffer[BytesRead] := #0;
+            Result            := Result + string(Buffer);
+          end;
+        until not bWasOK or (BytesRead = 0);
+        WaitForSingleObject(pi.hProcess, INFINITE);
+      finally
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+      end;
+    end;
+  finally
+    CloseHandle(StdOutPipeRead);
   end;
 end;
 
