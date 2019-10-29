@@ -43,6 +43,7 @@ type
     chkFullScreen: TCheckBox;
     OpenPictureDialog1: TOpenPictureDialog;
     btnAddEXE: TButton;
+    chkShowWebSpeed: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnDatabaseConfigClick(Sender: TObject);
@@ -192,6 +193,7 @@ begin
   FmemIni.WriteBool(c_strIniUISection, 'CloseMini', chkCloseMini.Checked);
   FmemIni.WriteBool(c_strIniUISection, 'AutoRun', chkAutorun.Checked);
   FmemIni.WriteBool(c_strIniUISection, 'OnlyOneInstance', chkOnlyOneInstance.Checked);
+  FmemIni.WriteBool(c_strIniUISection, 'ShowWebSpeed', chkShowWebSpeed.Checked);
   FmemIni.WriteBool(c_strIniUISection, 'ShowBackImage', chkBackImage.Checked);
 
   FmemIni.WriteInteger(c_strIniFormStyleSection, 'index', rgShowStyle.ItemIndex);
@@ -220,7 +222,9 @@ begin
   chkCloseMini.Checked       := FmemIni.ReadBool(c_strIniUISection, 'CloseMini', False);
   chkAutorun.Checked         := FmemIni.ReadBool(c_strIniUISection, 'AutoRun', False);
   chkOnlyOneInstance.Checked := FmemIni.ReadBool(c_strIniUISection, 'OnlyOneInstance', True);
-  chkBackImage.Checked       := FmemIni.ReadBool(c_strIniUISection, 'ShowBackImage', False);
+  chkShowWebSpeed.Checked    := FmemIni.ReadBool(c_strIniUISection, 'ShowWebSpeed', False);
+
+  chkBackImage.Checked := FmemIni.ReadBool(c_strIniUISection, 'ShowBackImage', False);
   if chkBackImage.Checked then
     srchbxBackImage.Text := FmemIni.ReadString(c_strIniUISection, 'filebackimage', '');
 

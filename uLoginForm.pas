@@ -76,6 +76,7 @@ begin
             { µÇÂ¼³É¹¦ }
             try
               SaveLoginInfo(IniFile);
+              g_strCurrentLoginName := edtUserName.Text;
               UpdateDataBaseScript(IniFile, g_ADOCNN, True);
             except
 

@@ -26,13 +26,9 @@ type
     pnlIP: TPanel;
     lblIP: TLabel;
     bvlIP: TBevel;
-    bvlModule: TBevel;
-    pnlDownUp: TPanel;
-    lblDownUp: TLabel;
-    bvlDownUP: TBevel;
     pmTray: TPopupMenu;
     mniTrayShowForm: TMenuItem;
-    N2: TMenuItem;
+    mniTrayLine01: TMenuItem;
     mniTrayExit: TMenuItem;
     imgDllFormBack: TImage;
     imgButtonBack: TImage;
@@ -41,6 +37,13 @@ type
     pnlModuleDialog: TPanel;
     pnlModuleDialogTitle: TPanel;
     imgSubModuleClose: TImage;
+    bvlModule01: TBevel;
+    pnlWeb: TPanel;
+    lblWeb: TLabel;
+    bvlWeb: TBevel;
+    bvlModule02: TBevel;
+    pnlLogin: TPanel;
+    lblLogin: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -564,8 +567,12 @@ end;
 procedure TfrmPBox.tmrDateTimeTimer(Sender: TObject);
 const
   WeekDay: array [1 .. 7] of String = ('星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六');
+var
+  strWebDownSpeed, strWebUpSpeed: String;
 begin
   lblTime.Caption := FormatDateTime('YYYY-MM-DD hh:mm:ss', Now) + ' ' + WeekDay[DayOfWeek(Now)];
+  GetWebSpeed(strWebDownSpeed, strWebUpSpeed);
+  lblWeb.Caption := Format('下载↓：%s  上传↑：%s', [strWebDownSpeed, strWebUpSpeed]);
 end;
 
 procedure TfrmPBox.ShowPageTabView(const bShow: Boolean);
@@ -585,14 +592,15 @@ var
 begin
   with TIniFile.Create(ChangeFileExt(ParamStr(0), '.ini')) do
   begin
-    Caption      := ReadString(c_strIniUISection, 'Title', c_strTitle);
-    TitleString  := Caption;
-    MulScreenPos := ReadBool(c_strIniUISection, 'MulScreen', False);
-    FbMaxForm    := ReadBool(c_strIniUISection, 'MAXSIZE', False);
-    FormStyle    := TFormStyle(Integer(ReadBool(c_strIniUISection, 'OnTop', False)) * 3);
-    CloseToTray  := ReadBool(c_strIniUISection, 'CloseMini', False);
-    bShowImage   := ReadBool(c_strIniUISection, 'showbackimage', False);
-    strImageBack := ReadString(c_strIniUISection, 'filebackimage', '');
+    Caption        := ReadString(c_strIniUISection, 'Title', c_strTitle);
+    TitleString    := Caption;
+    MulScreenPos   := ReadBool(c_strIniUISection, 'MulScreen', False);
+    FbMaxForm      := ReadBool(c_strIniUISection, 'MAXSIZE', False);
+    FormStyle      := TFormStyle(Integer(ReadBool(c_strIniUISection, 'OnTop', False)) * 3);
+    CloseToTray    := ReadBool(c_strIniUISection, 'CloseMini', False);
+    pnlWeb.Visible := ReadBool(c_strIniUISection, 'ShowWebSpeed', False);
+    bShowImage     := ReadBool(c_strIniUISection, 'showbackimage', False);
+    strImageBack   := ReadString(c_strIniUISection, 'filebackimage', '');
     if (bShowImage) and (Trim(strImageBack) <> '') and (FileExists(strImageBack)) then
     begin
       imgDllFormBack.Picture.LoadFromFile(strImageBack);
@@ -622,9 +630,10 @@ begin
   FUIViewStyle               := vsSingle;
   FDelphiDllForm             := nil;
   clbrPModule.Visible        := False;
+  pnlWeb.Visible             := False;
   ilMainMenu.Clear;
   ilPModule.Clear;
-
+  lblInfo.Caption   := '';
   tlbPModule.Images := nil;
   tlbPModule.Height := 30;
   tlbPModule.Menu   := nil;
@@ -669,9 +678,10 @@ procedure TfrmPBox.FormCreate(Sender: TObject);
 begin
   { 列表显示风格，关闭按钮状态 }
   LoadButtonBmp(imgSubModuleClose, 'Close', 0);
-  OnConfig      := OnSysConfig;
-  TrayIconPMenu := pmTray;
-  FlstAllDll    := THashedStringList.Create;
+  OnConfig         := OnSysConfig;
+  TrayIconPMenu    := pmTray;
+  FlstAllDll       := THashedStringList.Create;
+  lblLogin.Caption := g_strCurrentLoginName;
 
   { 显示 时间 }
   tmrDateTime.OnTimer(nil);

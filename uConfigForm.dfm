@@ -104,7 +104,7 @@ object frmConfig: TfrmConfig
     end
     object chkShowTwoScreen: TCheckBox
       Left = 10
-      Top = 46
+      Top = 41
       Width = 224
       Height = 17
       Caption = #22810#23631#24149#26102#65292#26174#31034#22312#31532#20108#20010#23631#24149#19978
@@ -112,7 +112,7 @@ object frmConfig: TfrmConfig
     end
     object chkTopForm: TCheckBox
       Left = 10
-      Top = 76
+      Top = 68
       Width = 224
       Height = 17
       Caption = #31383#20307#20445#25345#39030#31471#26174#31034
@@ -120,11 +120,11 @@ object frmConfig: TfrmConfig
     end
     object chkCloseMini: TCheckBox
       Left = 10
-      Top = 138
+      Top = 122
       Width = 224
       Height = 17
       Caption = #20851#38381#26102#65292#26368#23567#21270#21040#25176#30424#21306
-      TabOrder = 3
+      TabOrder = 4
     end
     object srchbxBackImage: TSearchBox
       Left = 124
@@ -132,7 +132,7 @@ object frmConfig: TfrmConfig
       Width = 189
       Height = 23
       ReadOnly = True
-      TabOrder = 4
+      TabOrder = 9
       Visible = False
       OnInvokeSearch = srchbxBackImageInvokeSearch
     end
@@ -142,32 +142,40 @@ object frmConfig: TfrmConfig
       Width = 97
       Height = 17
       Caption = #26174#31034#32972#26223#22270
-      TabOrder = 5
+      TabOrder = 8
       OnClick = chkBackImageClick
     end
     object chkAutorun: TCheckBox
       Left = 10
-      Top = 168
+      Top = 149
       Width = 224
       Height = 17
       Caption = #24320#26426#33258#21160#21551#21160
-      TabOrder = 6
+      TabOrder = 5
     end
     object chkOnlyOneInstance: TCheckBox
       Left = 10
-      Top = 199
+      Top = 176
       Width = 224
       Height = 17
       Caption = #21482#20801#35768#36816#34892#19968#20010#23454#20363
-      TabOrder = 7
+      TabOrder = 6
     end
     object chkFullScreen: TCheckBox
       Left = 10
-      Top = 107
+      Top = 95
       Width = 224
       Height = 17
       Caption = #31383#20307#26368#22823#21270#26174#31034
-      TabOrder = 8
+      TabOrder = 3
+    end
+    object chkShowWebSpeed: TCheckBox
+      Left = 10
+      Top = 203
+      Width = 224
+      Height = 17
+      Caption = #26174#31034#32593#32476#19979#36733#19978#20256#36895#24230
+      TabOrder = 7
     end
   end
   object btnSave: TButton

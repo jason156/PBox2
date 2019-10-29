@@ -16,7 +16,8 @@ uses
   uAddEXE in 'uAddEXE.pas' {frmAddEXE},
   uDBConfig in 'uDBConfig.pas' {DBConfig},
   uLoginForm in 'uLoginForm.pas' {frmLogin},
-  uHashCode in 'uHashCode.pas';
+  uHashCode in 'uHashCode.pas',
+  uNetworkManager in 'uNetworkManager.pas';
 
 {$R *.res}
 

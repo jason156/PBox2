@@ -2,9 +2,8 @@ unit uCommon;
 
 interface
 
-uses Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch,
-  FlyUtils.CnXXX.Common, FlyUtils.AES,
-  IdHashMessageDigest, IdHashCRC, IdHashSHA, IdSSLOpenSSLHeaders;
+uses Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, Winapi.IpRtrMib, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch, IdHashMessageDigest, IdHashCRC, IdHashSHA, IdSSLOpenSSLHeaders,
+  FlyUtils.CnXXX.Common, FlyUtils.AES, uNetworkManager;
 
 type
   { 界面显示方式：菜单、按钮对话框、列表 }
@@ -97,11 +96,15 @@ function GetPEExport(const strDllFieName: String; var lstFunc: TStringList): Boo
 { 数据库密码加密 }
 function EncDatabasePassword(const strPassword: string): String;
 
+{ 获取网络下载上传速度 }
+procedure GetWebSpeed(var strDnSpeed, strUpSpeed: string);
+
 var
   g_intVCDialogDllFormHandle: THandle = 0;
   g_strCreateDllFileName    : string  = '';
   g_bExitProgram            : Boolean = False;
   g_hEXEProcessID           : DWORD   = 0;
+  g_strCurrentLoginName     : string  = '';
 
 implementation
 
@@ -762,6 +765,74 @@ begin
       end;
     end;
     Free;
+  end;
+end;
+
+{ 获取网络下载上传速度 }
+var
+  FintDnBytes: UInt64 = 0;
+  FintUpBytes: UInt64 = 0;
+
+procedure GetWebSpeed(var strDnSpeed, strUpSpeed: string);
+var
+  NetworkManager        : TNetworkManager;
+  lsNetworkTraffic      : TList;
+  I                     : Integer;
+  intDnSpeed, intUpSpeed: Cardinal;
+  strNetworkDesc        : String;
+  intDnBytes            : UInt64;
+  intUpBytes            : UInt64;
+begin
+  NetworkManager   := TNetworkManager.Create(0);
+  lsNetworkTraffic := TList.Create;
+  try
+    NetworkManager.GetNetworkTraffic(lsNetworkTraffic);
+    if lsNetworkTraffic.Count > 0 then
+    begin
+      intDnBytes := 0;
+      intUpBytes := 0;
+
+      for I := 0 to lsNetworkTraffic.Count - 1 do
+      begin
+        strNetworkDesc := NetworkManager.GetDescrString(PMibIfRow(lsNetworkTraffic.Items[I])^.bDescr);
+        if Pos('Filter-0000', strNetworkDesc) = 0 then
+        begin
+          intDnBytes := intDnBytes + PMibIfRow(lsNetworkTraffic.Items[I])^.dwInOctets;
+          intUpBytes := intUpBytes + PMibIfRow(lsNetworkTraffic.Items[I])^.dwOutOctets;
+        end;
+      end;
+
+      { 第一次 }
+      if (FintDnBytes = 0) and (FintUpBytes = 0) then
+      begin
+        strDnSpeed := Format('%0.2f K/S', [0.0]);
+        strUpSpeed := Format('%0.2f K/S', [0.0]);
+
+        FintDnBytes := intDnBytes;
+        FintUpBytes := intUpBytes;
+        Exit;
+      end;
+
+      { 下载速度 }
+      intDnSpeed := intDnBytes - FintDnBytes;
+      if intDnSpeed > 1024 * 1024 then
+        strDnSpeed := Format('%0.2f M/S', [intDnSpeed / 1024 / 1024 / 2])
+      else
+        strDnSpeed := Format('%0.2f K/S', [intDnSpeed / 1024 / 2]);
+
+      { 上传速度 }
+      intUpSpeed := intUpBytes - FintUpBytes;
+      if intUpSpeed > 1024 * 1024 then
+        strUpSpeed := Format('%0.2f M/S', [intUpSpeed / 1024 / 1024 / 2])
+      else
+        strUpSpeed := Format('%0.2f K/S', [intUpSpeed / 1024 / 2]);
+
+      FintDnBytes := intDnBytes;
+      FintUpBytes := intUpBytes;
+    end;
+  finally
+    lsNetworkTraffic.Free;
+    NetworkManager.Free;
   end;
 end;
 

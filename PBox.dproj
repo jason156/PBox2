@@ -176,6 +176,7 @@
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="uHashCode.pas"/>
+        <DCCReference Include="uNetworkManager.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
