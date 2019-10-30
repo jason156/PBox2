@@ -825,16 +825,16 @@ begin
       { 下载速度 }
       intDnSpeed := intDnBytes - FintDnBytes;
       if intDnSpeed > 1024 * 1024 then
-        strDnSpeed := Format('%0.2f M/S', [intDnSpeed / 1024 / 1024 / 2])
+        strDnSpeed := Format('%0.2f M/S', [intDnSpeed / 1024 / 1024])
       else
-        strDnSpeed := Format('%0.2f K/S', [intDnSpeed / 1024 / 2]);
+        strDnSpeed := Format('%0.2f K/S', [intDnSpeed / 1024]);
 
       { 上传速度 }
       intUpSpeed := intUpBytes - FintUpBytes;
       if intUpSpeed > 1024 * 1024 then
-        strUpSpeed := Format('%0.2f M/S', [intUpSpeed / 1024 / 1024 / 2])
+        strUpSpeed := Format('%0.2f M/S', [intUpSpeed / 1024 / 1024])
       else
-        strUpSpeed := Format('%0.2f K/S', [intUpSpeed / 1024 / 2]);
+        strUpSpeed := Format('%0.2f K/S', [intUpSpeed / 1024]);
 
       FintDnBytes := intDnBytes;
       FintUpBytes := intUpBytes;
