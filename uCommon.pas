@@ -106,7 +106,7 @@ procedure GetWebSpeed(var strDnSpeed, strUpSpeed: string);
 function RunDOS_Real(const cmd: string; CallBackShowRealMessage: TShowMethod = nil): string;
 
 { 获取 DOS 命令行输出 }
-function RunDOS_Result(const CommandLine: string): string;
+function RunDOS_Result(const CommandLine: string; const bUTF8Output: Boolean = False): string;
 
 var
   g_intVCDialogDllFormHandle: THandle = 0;
@@ -906,14 +906,15 @@ begin
 end;
 
 { 获取 DOS 命令行输出 }
-function RunDOS_Result(const CommandLine: string): string;
+function RunDOS_Result(const CommandLine: string; const bUTF8Output: Boolean = False): string;
 var
   sa                             : TSecurityAttributes;
   si                             : TStartupInfo;
   pi                             : TProcessInformation;
   StdOutPipeRead, StdOutPipeWrite: THandle;
   bWasOK                         : Boolean;
-  Buffer                         : array [0 .. 255] of AnsiChar;
+  Buffer                         : array [0 .. 255] of Byte;
+  ReBuffer                       : array of Byte;
   BytesRead                      : Cardinal;
   bCreate                        : Boolean;
 begin
@@ -932,6 +933,7 @@ begin
     si.hStdError   := StdOutPipeWrite;
     bCreate        := CreateProcess(nil, PChar('cmd.exe /C ' + CommandLine), nil, nil, True, 0, nil, nil, si, pi);
     CloseHandle(StdOutPipeWrite);
+
     if bCreate then
     begin
       try
@@ -939,8 +941,12 @@ begin
           bWasOK := ReadFile(StdOutPipeRead, Buffer, 255, BytesRead, nil);
           if BytesRead > 0 then
           begin
-            Buffer[BytesRead] := #0;
-            Result            := Result + string(Buffer);
+            SetLength(ReBuffer, BytesRead);
+            Move(Buffer[0], ReBuffer[0], BytesRead);
+            if bUTF8Output then
+              Result := Result + TEncoding.UTF8.GetString(ReBuffer)
+            else
+              Result := Result + TEncoding.ANSI.GetString(ReBuffer)
           end;
         until not bWasOK or (BytesRead = 0);
         WaitForSingleObject(pi.hProcess, INFINITE);
