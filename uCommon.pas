@@ -804,7 +804,7 @@ begin
       for I := 0 to lsNetworkTraffic.Count - 1 do
       begin
         strNetworkDesc := NetworkManager.GetDescrString(PMibIfRow(lsNetworkTraffic.Items[I])^.bDescr);
-        if Pos('Filter-0000', strNetworkDesc) = 0 then
+        if Pos('-0000', strNetworkDesc) = 0 then
         begin
           intDnBytes := intDnBytes + PMibIfRow(lsNetworkTraffic.Items[I])^.dwInOctets;
           intUpBytes := intUpBytes + PMibIfRow(lsNetworkTraffic.Items[I])^.dwOutOctets;
@@ -942,6 +942,7 @@ begin
           if BytesRead > 0 then
           begin
             SetLength(ReBuffer, BytesRead);
+            FillChar(ReBuffer[0], BytesRead, #0);
             Move(Buffer[0], ReBuffer[0], BytesRead);
             if bUTF8Output then
               Result := Result + TEncoding.UTF8.GetString(ReBuffer)
