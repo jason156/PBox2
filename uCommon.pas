@@ -3,7 +3,7 @@ unit uCommon;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, Winapi.IpRtrMib, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch, IdHashMessageDigest, IdHashCRC, IdHashSHA, IdSSLOpenSSLHeaders,
+  Winapi.Windows, Winapi.Messages, Winapi.ShellAPI, Winapi.IpRtrMib, System.SysUtils, System.StrUtils, System.Classes, System.IniFiles, Vcl.Forms, Vcl.Graphics, Data.Win.ADODB, IdIPWatch,
   FlyUtils.CnXXX.Common, FlyUtils.AES, uNetworkManager;
 
 type
@@ -655,6 +655,7 @@ begin
   end;
 end;
 
+{ 获取导出表在磁盘文件中的位置 }
 procedure FindExportTablePos(const sts: array of TImageSectionHeader; const intVA: Cardinal; var intRA: Cardinal);
 var
   III, Count: Integer;
@@ -724,7 +725,10 @@ begin
       FileRead(hPEFile, stsArr[0], inhX86.FileHeader.NumberOfSections * SizeOf(TImageSectionHeader));
     end;
 
+    { 获取导出表在磁盘文件中的位置 }
     FindExportTablePos(stsArr, intVA, intRA);
+
+    { 获取导出函数列表 }
     FileSeek(hPEFile, intRA, 0);
     FileRead(hPEFile, eft, SizeOf(TImageExportDirectory));
     for I := 0 to eft.NumberOfNames - 1 do
@@ -735,6 +739,7 @@ begin
       FileRead(hPEFile, strFunctionName, 256);
       lstFunc.Add(string(strFunctionName));
     end;
+
     Result := True;
   finally
     FileClose(hPEFile);
