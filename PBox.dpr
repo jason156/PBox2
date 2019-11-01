@@ -11,13 +11,13 @@ uses
   uCreateVCDialogDll in 'uCreateVCDialogDll.pas',
   uCreateDelphiDll in 'uCreateDelphiDll.pas',
   uCreateEXE in 'uCreateEXE.pas',
+  uHashCode in 'uHashCode.pas',
+  uNetworkManager in 'uNetworkManager.pas',
   uPBoxForm in 'uPBoxForm.pas' {frmPBox},
   uConfigForm in 'uConfigForm.pas' {frmConfig},
   uAddEXE in 'uAddEXE.pas' {frmAddEXE},
   uDBConfig in 'uDBConfig.pas' {DBConfig},
-  uLoginForm in 'uLoginForm.pas' {frmLogin},
-  uHashCode in 'uHashCode.pas',
-  uNetworkManager in 'uNetworkManager.pas';
+  uLoginForm in 'uLoginForm.pas' {frmLogin};
 
 {$R *.res}
 
