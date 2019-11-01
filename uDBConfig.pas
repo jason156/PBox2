@@ -290,8 +290,8 @@ begin
       FmemIni.WriteString(c_strIniDBSection, 'LoginNameField', cbbLoginName.Text);
       FmemIni.WriteString(c_strIniDBSection, 'LoginPassField', cbbLoginPass.Text);
       FmemIni.WriteBool(c_strIniDBSection, 'PasswordEnc', False);
-      FmemIni.WriteString(c_strIniDBSection, 'PasswordDecDllFileName', '');
-      FmemIni.WriteString(c_strIniDBSection, 'PasswordDecDllFuncName', '');
+      FmemIni.WriteString(c_strIniDBSection, 'PasswordEncDllFileName', '');
+      FmemIni.WriteString(c_strIniDBSection, 'PasswordEncDllFuncName', '');
     end;
   end
   else
@@ -302,8 +302,8 @@ begin
       FmemIni.WriteString(c_strIniDBSection, 'LoginNameField', cbbLoginName.Text);
       FmemIni.WriteString(c_strIniDBSection, 'LoginPassField', cbbLoginPass.Text);
       FmemIni.WriteBool(c_strIniDBSection, 'PasswordEnc', True);
-      FmemIni.WriteString(c_strIniDBSection, 'PasswordDecDllFileName', srchbxDecFuncFile.Text);
-      FmemIni.WriteString(c_strIniDBSection, 'PasswordDecDllFuncName', cbbDllFunc.Text);
+      FmemIni.WriteString(c_strIniDBSection, 'PasswordEncDllFileName', srchbxDecFuncFile.Text);
+      FmemIni.WriteString(c_strIniDBSection, 'PasswordEncDllFuncName', cbbDllFunc.Text);
     end;
   end;
 
@@ -452,14 +452,14 @@ begin
   chkPassword.Checked := FmemIni.ReadBool(c_strIniDBSection, 'PasswordEnc', False);
   if chkPassword.Checked then
   begin
-    if FileExists(FmemIni.ReadString(c_strIniDBSection, 'PasswordDecDllFileName', '')) then
+    if FileExists(FmemIni.ReadString(c_strIniDBSection, 'PasswordEncDllFileName', '')) then
     begin
-      srchbxDecFuncFile.Text := FmemIni.ReadString(c_strIniDBSection, 'PasswordDecDllFileName', '');
+      srchbxDecFuncFile.Text := FmemIni.ReadString(c_strIniDBSection, 'PasswordEncDllFileName', '');
       lstFunc                := TStringList.Create;
       try
         GetPEExport(srchbxDecFuncFile.Text, lstFunc);
         cbbDllFunc.Items.AddStrings(lstFunc);
-        cbbDllFunc.ItemIndex := cbbDllFunc.Items.IndexOf(FmemIni.ReadString(c_strIniDBSection, 'PasswordDecDllFuncName', ''));
+        cbbDllFunc.ItemIndex := cbbDllFunc.Items.IndexOf(FmemIni.ReadString(c_strIniDBSection, 'PasswordEncDllFuncName', ''));
       finally
         lstFunc.Free;
       end;

@@ -63,6 +63,10 @@ object DBConfig: TDBConfig
     TabWidth = 89
     object tsCreateDBLink: TTabSheet
       Caption = #36830#25509
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object btnCreateDBLink: TButton
         Left = 24
         Top = 24
@@ -76,6 +80,10 @@ object DBConfig: TDBConfig
     object ts2: TTabSheet
       Caption = #21019#24314
       ImageIndex = 1
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object btnCreateDB: TButton
         Left = 24
         Top = 24
@@ -89,6 +97,10 @@ object DBConfig: TDBConfig
     object ts3: TTabSheet
       Caption = #21319#32423
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblAutoUpdateDBSQLScriptFileNameDelete: TLabel
         Left = 40
         Top = 147
@@ -160,6 +172,10 @@ object DBConfig: TDBConfig
     object ts4: TTabSheet
       Caption = #25910#32553
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object btnZoomOut: TButton
         Left = 24
         Top = 24
@@ -173,6 +189,10 @@ object DBConfig: TDBConfig
     object ts5: TTabSheet
       Caption = #22791#20221
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblLoginName: TLabel
         Left = 24
         Top = 84
@@ -253,6 +273,10 @@ object DBConfig: TDBConfig
     object ts6: TTabSheet
       Caption = #36824#21407
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object Label1: TLabel
         Left = 24
         Top = 84
@@ -493,10 +517,18 @@ object DBConfig: TDBConfig
     object ts8: TTabSheet
       Caption = #23450#26399#28165#38500#25968#25454
       ImageIndex = 7
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
     object ts9: TTabSheet
       Caption = #23450#26399#22791#20221#25968#25454
       ImageIndex = 8
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
     end
   end
   object adoCNN: TADOConnection

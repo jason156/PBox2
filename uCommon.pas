@@ -733,9 +733,9 @@ begin
     FileRead(hPEFile, eft, SizeOf(TImageExportDirectory));
     for I := 0 to eft.NumberOfNames - 1 do
     begin
-      FileSeek(hPEFile, eft.AddressOfNames - intVA + intRA + DWORD(4 * I), 0);
+      FileSeek(hPEFile, (eft.AddressOfNames - intVA) + intRA + DWORD(4 * I), 0);
       FileRead(hPEFile, intFuncRA, 4);
-      FileSeek(hPEFile, intFuncRA - intVA + intRA, 0);
+      FileSeek(hPEFile, (intFuncRA - intVA) + intRA, 0);
       FileRead(hPEFile, strFunctionName, 256);
       lstFunc.Add(string(strFunctionName));
     end;
@@ -759,8 +759,8 @@ begin
   begin
     if ReadBool(c_strIniDBSection, 'PasswordEnc', False) then
     begin
-      strDllFileName := ReadString(c_strIniDBSection, 'PasswordDecDllFileName', '');
-      strDllFuncName := ReadString(c_strIniDBSection, 'PasswordDecDllFuncName', '');
+      strDllFileName := ReadString(c_strIniDBSection, 'PasswordEncDllFileName', '');
+      strDllFuncName := ReadString(c_strIniDBSection, 'PasswordEncDllFuncName', '');
       if FileExists(strDllFileName) then
       begin
         hDll := LoadLibrary(PChar(strDllFileName));
